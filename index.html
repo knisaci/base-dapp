@@ -3,582 +3,677 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Base L2 dApp</title>
+  <title>Base dApp — Smart Contract Interface</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #080910;
+      --surface: #0f1117;
+      --surface2: #161820;
+      --border: #1f2133;
+      --border2: #252840;
+      --blue: #0052ff;
+      --blue2: #2d7aff;
+      --blue-glow: rgba(0,82,255,0.15);
+      --green: #00d48a;
+      --red: #ff4d6d;
+      --text: #e8eaf6;
+      --text2: #9aa0bc;
+      --text3: #5a6080;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0a0b0f;
-      color: #e8eaf6;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 16px;
+      padding: 32px 16px 60px;
     }
-
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,82,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,82,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
     header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 36px;
+      position: relative; z-index: 1;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 28px; width: 100%; max-width: 540px;
     }
-
-    header .logo {
-      width: 40px; height: 40px;
+    .logo {
+      width: 44px; height: 44px;
       background: linear-gradient(135deg, #0052ff, #00b4ff);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 18px; color: #fff;
-    }
-
-    header h1 { font-size: 22px; font-weight: 700; color: #fff; }
-    header span { font-size: 13px; color: #6c7a99; margin-top: 2px; display: block; }
-
-    .card {
-      background: #13151f;
-      border: 1px solid #1e2235;
-      border-radius: 16px;
-      padding: 28px;
-      width: 100%;
-      max-width: 480px;
-      margin-bottom: 20px;
-    }
-
-    .card h2 {
-      font-size: 14px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #6c7a99;
-      margin-bottom: 16px;
-    }
-
-    .network-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #0a1628;
-      border: 1px solid #0052ff44;
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 13px;
-      color: #4d9fff;
-      margin-bottom: 16px;
-    }
-
-    .network-badge .dot {
-      width: 7px; height: 7px;
-      background: #0052ff;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    .wallet-info {
-      background: #0d0f1a;
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-size: 13px;
-      color: #8892a4;
-      word-break: break-all;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .wallet-info.visible { display: block; }
-    .wallet-info strong { color: #c4cde8; }
-
-    button {
-      width: 100%;
-      padding: 13px;
       border-radius: 12px;
-      border: none;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 20px; color: #fff;
+      box-shadow: 0 0 20px rgba(0,82,255,0.4);
+      flex-shrink: 0;
     }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #0052ff, #0099ff);
-      color: #fff;
+    .header-text h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .header-text p { font-size: 13px; color: var(--text3); margin-top: 1px; }
+    .header-right { margin-left: auto; }
+    .network-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,82,255,0.08);
+      border: 1px solid rgba(0,82,255,0.25);
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 12px; font-weight: 600;
+      color: var(--blue2); font-family: var(--mono);
     }
-
-    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-    .btn-secondary {
-      background: #1a1e2e;
-      color: #c4cde8;
-      border: 1px solid #252a3d;
-      margin-top: 10px;
+    .pulse {
+      width: 6px; height: 6px; background: var(--green);
+      border-radius: 50%; animation: pulse 2s infinite;
     }
-
-    .btn-secondary:hover { background: #1e2338; }
-
-    label {
-      display: block;
-      font-size: 13px;
-      color: #6c7a99;
-      margin-bottom: 6px;
-      margin-top: 14px;
+    @keyframes pulse {
+      0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(0,212,138,0.4); }
+      50% { opacity:0.7; box-shadow: 0 0 0 4px rgba(0,212,138,0); }
     }
-
-    input, textarea {
-      width: 100%;
-      padding: 11px 14px;
-      background: #0d0f1a;
-      border: 1px solid #1e2235;
-      border-radius: 10px;
-      color: #e8eaf6;
-      font-size: 14px;
-      outline: none;
-      transition: border 0.15s;
+    .card {
+      position: relative; z-index: 1;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px;
+      width: 100%; max-width: 540px; margin-bottom: 16px;
     }
-
-    input:focus, textarea:focus { border-color: #0052ff88; }
-
-    textarea { resize: vertical; min-height: 80px; font-family: monospace; }
-
-    .result-box {
-      margin-top: 14px;
-      padding: 12px 14px;
-      background: #0a0c14;
-      border-radius: 10px;
-      border-left: 3px solid #0052ff;
-      font-size: 13px;
-      color: #8892a4;
-      word-break: break-all;
-      display: none;
+    .card-title {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text3); margin-bottom: 16px;
     }
-
-    .result-box.visible { display: block; }
-    .result-box.error { border-color: #ff4d6d; color: #ff6b80; }
-    .result-box.success { border-color: #00d48a; color: #00e09a; }
-
-    .tx-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: #4d9fff;
-      text-decoration: none;
-      font-size: 12px;
-      margin-top: 6px;
+    .wallet-row { display: flex; align-items: center; gap: 12px; }
+    .wallet-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg,#0052ff33,#00b4ff33);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
     }
-
-    .tx-link:hover { text-decoration: underline; }
-
+    .wallet-details { flex: 1; min-width: 0; }
+    .wallet-addr { font-family: var(--mono); font-size: 13px; color: var(--text); }
+    .wallet-bal { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .wallet-bal span { color: var(--green); font-weight: 600; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; padding: 11px 18px; border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 600; font-family: var(--sans);
+      cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+    }
+    .btn-full { width: 100%; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--blue2); box-shadow: 0 0 20px var(--blue-glow); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+    .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 7px; }
     .tabs {
-      display: flex;
-      gap: 4px;
-      background: #0d0f1a;
-      border-radius: 10px;
-      padding: 4px;
-      margin-bottom: 18px;
+      display: flex; gap: 2px; background: var(--surface2);
+      border-radius: 10px; padding: 3px; margin-bottom: 20px;
     }
-
     .tab {
-      flex: 1;
-      padding: 8px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      color: #6c7a99;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      width: auto;
+      flex: 1; padding: 8px 6px; border-radius: 8px; border: none;
+      background: transparent; color: var(--text3);
+      font-size: 13px; font-weight: 600; font-family: var(--sans);
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-
-    .tab.active {
-      background: #1a1e2e;
-      color: #e8eaf6;
-    }
-
+    .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-
-    footer {
-      font-size: 12px;
-      color: #3a4055;
-      margin-top: 20px;
+    .field { margin-bottom: 14px; }
+    .field-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
     }
+    .tip {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--surface2); color: var(--text3);
+      font-size: 10px; cursor: help; position: relative;
+    }
+    .tip:hover .tip-text { display: block; }
+    .tip-text {
+      display: none; position: absolute;
+      bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+      background: #1e2133; border: 1px solid var(--border2);
+      border-radius: 8px; padding: 8px 10px; font-size: 11px;
+      color: var(--text2); width: 200px; text-align: left;
+      z-index: 100; font-family: var(--sans); line-height: 1.5; white-space: normal;
+    }
+    input, textarea, select {
+      width: 100%; padding: 10px 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 9px; color: var(--text);
+      font-size: 13px; font-family: var(--mono);
+      outline: none; transition: border 0.15s, box-shadow 0.15s;
+    }
+    input:focus, textarea:focus { border-color: rgba(0,82,255,0.5); box-shadow: 0 0 0 3px var(--blue-glow); }
+    input::placeholder, textarea::placeholder { color: var(--text3); }
+    textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+    .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+    .preset-label { font-size: 11px; color: var(--text3); }
+    .preset-btn {
+      padding: 4px 10px; border-radius: 6px;
+      border: 1px solid var(--border2); background: var(--surface2);
+      color: var(--text3); font-size: 11px; font-family: var(--mono);
+      cursor: pointer; transition: all 0.12s;
+    }
+    .preset-btn:hover { border-color: var(--blue); color: var(--blue2); }
+    .result {
+      margin-top: 14px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface2);
+      overflow: hidden; display: none;
+    }
+    .result.visible { display: block; }
+    .result-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px; border-bottom: 1px solid var(--border);
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .result-header.success { color: var(--green); }
+    .result-header.error { color: var(--red); }
+    .result-header.info { color: var(--blue2); }
+    .result-body { padding: 12px; font-family: var(--mono); font-size: 12px; color: var(--text2); word-break: break-all; line-height: 1.6; }
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step { display: flex; gap: 14px; padding-bottom: 20px; position: relative; }
+    .step:last-child { padding-bottom: 0; }
+    .step:not(:last-child)::before {
+      content: ''; position: absolute; left: 15px; top: 32px; bottom: 0;
+      width: 1px; background: var(--border2);
+    }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--text3);
+      flex-shrink: 0; z-index: 1;
+    }
+    .step.done .step-num { background: rgba(0,212,138,0.1); border-color: var(--green); color: var(--green); }
+    .step.active .step-num { background: var(--blue-glow); border-color: var(--blue); color: var(--blue2); }
+    .step-body { flex: 1; padding-top: 5px; }
+    .step-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .step-label { color: var(--text3); font-weight: 400; font-size: 12px; margin-left: 6px; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+    .copy-btn {
+      background: none; border: none; color: var(--text3);
+      cursor: pointer; font-size: 12px; padding: 2px 6px;
+      border-radius: 4px; transition: all 0.12s; font-family: var(--sans);
+    }
+    .copy-btn:hover { color: var(--text); background: var(--surface); }
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .tx-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      color: var(--blue2); text-decoration: none;
+      font-size: 12px; font-family: var(--mono);
+    }
+    .tx-link:hover { text-decoration: underline; }
+    .info-box {
+      background: rgba(0,82,255,0.06); border: 1px solid rgba(0,82,255,0.15);
+      border-radius: 9px; padding: 10px 12px;
+      font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 14px;
+    }
+    .info-box strong { color: var(--blue2); }
+    .info-box a { color: var(--blue2); }
+    footer {
+      position: relative; z-index: 1;
+      font-size: 11px; color: var(--text3);
+      margin-top: 12px; font-family: var(--mono); text-align: center;
+    }
+    footer a { color: var(--text3); text-decoration: none; }
+    footer a:hover { color: var(--blue2); }
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 10px 18px;
+      font-size: 13px; color: var(--text); z-index: 999;
+      transition: transform 0.25s ease; white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .connected-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--green); font-family: var(--mono); }
   </style>
 </head>
 <body>
 
+<div class="toast" id="toast"></div>
+
 <header>
   <div class="logo">B</div>
-  <div>
-    <h1>Base L2 dApp</h1>
-    <span>Simple smart contract interface</span>
+  <div class="header-text">
+    <h1>Base dApp</h1>
+    <p>Smart contract interface</p>
+  </div>
+  <div class="header-right">
+    <div class="network-pill"><span class="pulse"></span>Base Mainnet</div>
   </div>
 </header>
 
-<!-- Wallet Card -->
+<!-- Wallet -->
 <div class="card">
-  <h2>Wallet</h2>
-  <div class="network-badge">
-    <span class="dot"></span>
-    Base Mainnet
+  <div class="card-title">Wallet</div>
+  <div id="disconnectedView">
+    <div class="info-box">
+      Connect your MetaMask wallet to interact with smart contracts on <strong>Base Mainnet</strong>. The app will auto-switch you to the right network.
+    </div>
+    <button class="btn btn-primary btn-full" id="connectBtn" onclick="connectWallet()">🦊 Connect MetaMask</button>
+    <div style="margin-top:10px;text-align:center;font-size:12px;color:var(--text3)">
+      Don't have MetaMask? <a href="https://metamask.io" target="_blank" style="color:var(--blue2)">Install it here →</a>
+    </div>
   </div>
-
-  <div class="wallet-info" id="walletInfo">
-    <strong>Connected:</strong><br/>
-    <span id="walletAddress">—</span><br/><br/>
-    <strong>Balance:</strong> <span id="walletBalance">—</span> ETH
+  <div id="connectedView" style="display:none">
+    <div class="wallet-row">
+      <div class="wallet-avatar">🦊</div>
+      <div class="wallet-details">
+        <div class="wallet-addr" id="walletAddress">—</div>
+        <div class="wallet-bal">Balance: <span id="walletBalance">—</span> ETH</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="copyAddr()">Copy</button>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="connected-badge">✓ Connected to Base Mainnet</span>
+      <button class="btn btn-ghost btn-sm" onclick="disconnectWallet()">Disconnect</button>
+    </div>
   </div>
-
-  <button class="btn-primary" id="connectBtn" onclick="connectWallet()">
-    Connect Wallet
-  </button>
-  <button class="btn-secondary" id="addNetworkBtn" onclick="addBaseNetwork()" style="display:none">
-    Add Base Sepolia to MetaMask
-  </button>
 </div>
 
-<!-- Contract Card -->
+<!-- Contract -->
 <div class="card">
-  <h2>Smart Contract</h2>
-
+  <div class="card-title">Smart Contract</div>
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('read')">Read</button>
-    <button class="tab" onclick="switchTab('write')">Write</button>
-    <button class="tab" onclick="switchTab('deploy')">Deploy</button>
+    <button class="tab active" onclick="switchTab('read')" id="tab-read">📖 Read</button>
+    <button class="tab" onclick="switchTab('write')" id="tab-write">✍️ Write</button>
+    <button class="tab" onclick="switchTab('deploy')" id="tab-deploy">🚀 Deploy</button>
   </div>
 
-  <!-- READ TAB -->
-  <div class="tab-content active" id="tab-read">
-    <label>Contract Address</label>
-    <input type="text" id="readAddress" placeholder="0x..." />
-
-    <label>Function Signature</label>
-    <input type="text" id="readFunction" placeholder='e.g. getValue() or balanceOf(address)' />
-
-    <label>Arguments (comma-separated, optional)</label>
-    <input type="text" id="readArgs" placeholder='e.g. 0xAbc123...' />
-
-    <button class="btn-primary" style="margin-top:16px" onclick="callReadFunction()">Call Function</button>
-
-    <div class="result-box" id="readResult"></div>
+  <!-- READ -->
+  <div class="tab-content active" id="content-read">
+    <div class="field">
+      <div class="field-label">Contract Address <span class="tip">?<span class="tip-text">The 0x address of any deployed contract on Base Mainnet.</span></span></div>
+      <input type="text" id="readAddress" placeholder="0x..." />
+    </div>
+    <div class="field">
+      <div class="field-label">Function Signature <span class="tip">?<span class="tip-text">Function name + parameter types. e.g. getMessage() or balanceOf(address)</span></span></div>
+      <div class="presets">
+        <span class="preset-label">Try:</span>
+        <button class="preset-btn" onclick="setPreset('read','getMessage()')">getMessage()</button>
+        <button class="preset-btn" onclick="setPreset('read','balanceOf(address)')">balanceOf(address)</button>
+        <button class="preset-btn" onclick="setPreset('read','totalSupply()')">totalSupply()</button>
+        <button class="preset-btn" onclick="setPreset('read','owner()')">owner()</button>
+      </div>
+      <input type="text" id="readFunction" placeholder="e.g. getMessage() or balanceOf(address)" oninput="updateArgs('read')" />
+    </div>
+    <div class="field" id="readArgsField" style="display:none">
+      <div class="field-label">Arguments <span style="color:var(--text3);font-weight:400">(comma-separated)</span></div>
+      <input type="text" id="readArgs" placeholder="e.g. 0xAbC123..." />
+    </div>
+    <button class="btn btn-primary btn-full" id="readBtn" onclick="callRead()">Call Function</button>
+    <div class="result" id="readResult">
+      <div class="result-header success" id="readResultHeader">✓ Result <button class="copy-btn" onclick="copyResult('readResultBody')">Copy</button></div>
+      <div class="result-body" id="readResultBody"></div>
+    </div>
   </div>
 
-  <!-- WRITE TAB -->
-  <div class="tab-content" id="tab-write">
-    <label>Contract Address</label>
-    <input type="text" id="writeAddress" placeholder="0x..." />
-
-    <label>Function Signature</label>
-    <input type="text" id="writeFunction" placeholder='e.g. setValue(uint256) or transfer(address,uint256)' />
-
-    <label>Arguments (comma-separated)</label>
-    <input type="text" id="writeArgs" placeholder='e.g. 42 or 0xAbc..., 1000' />
-
-    <label>ETH to send (optional)</label>
-    <input type="text" id="writeValue" placeholder="0.0" />
-
-    <button class="btn-primary" style="margin-top:16px" onclick="callWriteFunction()">Send Transaction</button>
-
-    <div class="result-box" id="writeResult"></div>
+  <!-- WRITE -->
+  <div class="tab-content" id="content-write">
+    <div class="field">
+      <div class="field-label">Contract Address <span class="tip">?<span class="tip-text">The 0x address of the deployed contract on Base Mainnet.</span></span></div>
+      <input type="text" id="writeAddress" placeholder="0x..." />
+    </div>
+    <div class="field">
+      <div class="field-label">Function Signature <span class="tip">?<span class="tip-text">Include parameter types. e.g. setMessage(string) or transfer(address,uint256)</span></span></div>
+      <div class="presets">
+        <span class="preset-label">Try:</span>
+        <button class="preset-btn" onclick="setPreset('write','setMessage(string)')">setMessage(string)</button>
+        <button class="preset-btn" onclick="setPreset('write','transfer(address,uint256)')">transfer(address,uint256)</button>
+        <button class="preset-btn" onclick="setPreset('write','mint(address,uint256)')">mint(address,uint256)</button>
+      </div>
+      <input type="text" id="writeFunction" placeholder="e.g. setMessage(string)" oninput="updateArgs('write')" />
+    </div>
+    <div class="field" id="writeArgsField" style="display:none">
+      <div class="field-label">Arguments <span style="color:var(--text3);font-weight:400">(comma-separated)</span></div>
+      <input type="text" id="writeArgs" placeholder='e.g. Hello World or 0xAbc..., 1000' />
+    </div>
+    <div class="field">
+      <div class="field-label">ETH to send <span style="color:var(--text3);font-weight:400">(optional — for payable functions)</span></div>
+      <input type="text" id="writeValue" placeholder="0.0" />
+    </div>
+    <button class="btn btn-primary btn-full" id="writeBtn" onclick="callWrite()">Send Transaction</button>
+    <div class="result" id="writeResult">
+      <div class="result-header success" id="writeResultHeader">✓ Transaction Sent</div>
+      <div class="result-body" id="writeResultBody"></div>
+    </div>
   </div>
 
-  <!-- DEPLOY TAB -->
-  <div class="tab-content" id="tab-deploy">
-    <label>Bytecode (hex)</label>
-    <textarea id="deployBytecode" placeholder="0x608060..."></textarea>
-
-    <label>ABI-encoded constructor args (optional)</label>
-    <input type="text" id="deployArgs" placeholder="0x000..." />
-
-    <label>ETH value to send (optional)</label>
-    <input type="text" id="deployValue" placeholder="0.0" />
-
-    <button class="btn-primary" style="margin-top:16px" onclick="deployContract()">Deploy Contract</button>
-
-    <div class="result-box" id="deployResult"></div>
+  <!-- DEPLOY -->
+  <div class="tab-content" id="content-deploy">
+    <div class="info-box">
+      Deploy any Solidity contract to <strong>Base Mainnet</strong>. Get your bytecode from <a href="https://remix.ethereum.org" target="_blank">Remix IDE</a> → Compiler → Compilation Details → BYTECODE → <strong>object</strong> field.
+    </div>
+    <div class="steps">
+      <div class="step active" id="deployStep1">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Paste Bytecode <span class="step-label">from Remix → Compilation Details → object</span></div>
+          <div class="field">
+            <textarea id="deployBytecode" placeholder="0x608060405234801561001057600080fd5b50..." rows="4" oninput="onBytecodeInput()"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="step" id="deployStep2">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Constructor Arguments <span class="step-label">optional</span></div>
+          <div class="field">
+            <div class="field-label">Initial value / message <span class="tip">?<span class="tip-text">If your constructor takes arguments, enter them here. For the Message.sol example, type your first message.</span></span></div>
+            <input type="text" id="deployInitMsg" placeholder='e.g. Hello from Base Mainnet!' />
+          </div>
+          <div class="field">
+            <div class="field-label">Constructor types <span class="tip">?<span class="tip-text">The parameter types in parentheses. e.g. (string) or (address,uint256). Leave blank if no constructor args.</span></span></div>
+            <input type="text" id="deployCtorSig" placeholder="e.g. (string) — leave blank if none" />
+          </div>
+        </div>
+      </div>
+      <div class="step" id="deployStep3">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">ETH Value <span class="step-label">optional — for payable constructors only</span></div>
+          <div class="field">
+            <input type="text" id="deployValue" placeholder="0.0 ETH" />
+          </div>
+        </div>
+      </div>
+      <div class="step" id="deployStep4">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Deploy to Base Mainnet</div>
+          <button class="btn btn-primary btn-full" id="deployBtn" onclick="deployContract()">🚀 Deploy Contract</button>
+        </div>
+      </div>
+    </div>
+    <div class="result" id="deployResult" style="margin-top:16px">
+      <div class="result-header info" id="deployResultHeader">⏳ Deploying…</div>
+      <div class="result-body" id="deployResultBody"></div>
+    </div>
   </div>
 </div>
 
-<footer>Built on Base Mainnet · Uses MetaMask / EIP-1193 provider</footer>
+<footer>
+  Built on <a href="https://base.org" target="_blank">Base Mainnet</a> ·
+  <a href="https://github.com/knisaci/base-dapp" target="_blank">GitHub</a> ·
+  Uses MetaMask + ethers.js v6
+</footer>
 
 <script>
-  // ─── Config ───────────────────────────────────────────────────────────────
-  const BASE_SEPOLIA = {
-    chainId: '0x2105',           // 8453 in decimal — Base Mainnet
-    chainName: 'Base',
-    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-    rpcUrls: ['https://mainnet.base.org'],
-    blockExplorerUrls: ['https://basescan.org']
-  };
+const BASE_MAINNET = {
+  chainId: '0x2105',
+  chainName: 'Base',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: ['https://mainnet.base.org'],
+  blockExplorerUrls: ['https://basescan.org']
+};
 
-  let provider = null;
-  let signer   = null;
+let ethers = null;
+let connectedAddress = null;
 
-  // ─── Tab switching ────────────────────────────────────────────────────────
-  function switchTab(name) {
-    document.querySelectorAll('.tab').forEach((t, i) => {
-      const names = ['read','write','deploy'];
-      t.classList.toggle('active', names[i] === name);
-    });
-    document.querySelectorAll('.tab-content').forEach(c => {
-      c.classList.toggle('active', c.id === 'tab-' + name);
-    });
+async function loadEthers() {
+  if (ethers) return ethers;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js';
+    s.onload = () => { ethers = window.ethers; resolve(ethers); };
+    s.onerror = () => reject(new Error('Failed to load ethers.js'));
+    document.head.appendChild(s);
+  });
+}
+
+function toast(msg, duration = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration);
+}
+
+function switchTab(name) {
+  ['read','write','deploy'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === name);
+    document.getElementById('content-' + t).classList.toggle('active', t === name);
+  });
+}
+
+function setPreset(tab, sig) {
+  document.getElementById(tab + 'Function').value = sig;
+  updateArgs(tab);
+}
+
+function updateArgs(tab) {
+  const sig = document.getElementById(tab + 'Function').value;
+  const hasArgs = sig.includes('(') && !/\(\s*\)/.test(sig);
+  const field = document.getElementById(tab + 'ArgsField');
+  if (field) field.style.display = hasArgs ? 'block' : 'none';
+}
+
+function onBytecodeInput() {
+  const val = document.getElementById('deployBytecode').value.trim();
+  if (val.length > 10) {
+    document.getElementById('deployStep1').classList.add('done');
+    document.getElementById('deployStep1').querySelector('.step-num').textContent = '✓';
+    document.getElementById('deployStep2').classList.add('active');
   }
+}
 
-  // ─── Wallet ───────────────────────────────────────────────────────────────
-  async function connectWallet() {
-    if (!window.ethereum) {
-      alert('MetaMask not detected. Please install it from metamask.io');
-      return;
-    }
+async function connectWallet() {
+  if (!window.ethereum) {
+    toast('⚠️ MetaMask not found — install it first');
+    window.open('https://metamask.io', '_blank');
+    return;
+  }
+  const btn = document.getElementById('connectBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Connecting…';
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
     try {
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-
-      // Switch / add Base Sepolia
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: BASE_SEPOLIA.chainId }]
-        });
-      } catch (e) {
-        if (e.code === 4902) {
-          await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BASE_SEPOLIA] });
-        }
-      }
-
-      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      const addr = accounts[0];
-      const balHex = await window.ethereum.request({ method: 'eth_getBalance', params: [addr, 'latest'] });
-      const balEth = (parseInt(balHex, 16) / 1e18).toFixed(6);
-
-      document.getElementById('walletAddress').textContent = addr;
-      document.getElementById('walletBalance').textContent  = balEth;
-      document.getElementById('walletInfo').classList.add('visible');
-      document.getElementById('connectBtn').textContent = 'Connected ✓';
-      document.getElementById('connectBtn').disabled = true;
-      document.getElementById('addNetworkBtn').style.display = 'none';
-
-    } catch (err) {
-      console.error(err);
-      document.getElementById('addNetworkBtn').style.display = 'block';
-      showResult('readResult', 'Connection failed: ' + err.message, 'error');
-    }
-  }
-
-  async function addBaseNetwork() {
-    if (!window.ethereum) return;
-    await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BASE_SEPOLIA] });
-  }
-
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  function showResult(id, msg, type = '') {
-    const el = document.getElementById(id);
-    el.textContent = msg;
-    el.className = 'result-box visible' + (type ? ' ' + type : '');
-  }
-
-  function parseFunctionSig(sig) {
-    // e.g. "getValue()" → { name: 'getValue', params: [] }
-    // e.g. "transfer(address,uint256)" → { name: 'transfer', params: ['address','uint256'] }
-    const m = sig.trim().match(/^(\w+)\s*\(([^)]*)\)$/);
-    if (!m) throw new Error('Invalid function signature: ' + sig);
-    const params = m[2].trim() === '' ? [] : m[2].split(',').map(s => s.trim());
-    return { name: m[1], params };
-  }
-
-  function encodeCalldata(sig) {
-    // Minimal ABI encoding using eth_call via MetaMask
-    // We build a minimal ABI object and encode via JSON-RPC
-    // For simplicity we use ethers-free approach: encode function selector + args manually
-    // We'll use a tiny inline encoder for common types.
-    // For full ABI support, include ethers.js.
-    return sig; // placeholder – see encodeCall()
-  }
-
-  // Tiny ABI encoder (supports: uint256, address, bool, bytes32, string basics)
-  function keccak256Sig(sig) {
-    // We use eth_call with the data field constructed via a simple helper
-    // Since we can't run keccak in pure JS without a library,
-    // we'll use a precomputed approach via eth_call with ABI JSON
-    return sig;
-  }
-
-  function buildABI(name, params, isView) {
-    return [{
-      name,
-      type: 'function',
-      stateMutability: isView ? 'view' : 'nonpayable',
-      inputs: params.map((p, i) => ({ name: `arg${i}`, type: p })),
-      outputs: [{ name: 'result', type: 'bytes' }]
-    }];
-  }
-
-  // Parse args string into array
-  function parseArgs(str) {
-    if (!str.trim()) return [];
-    return str.split(',').map(s => s.trim());
-  }
-
-  // ─── Read ─────────────────────────────────────────────────────────────────
-  async function callReadFunction() {
-    if (!window.ethereum) return showResult('readResult', 'Connect wallet first.', 'error');
-    const addr    = document.getElementById('readAddress').value.trim();
-    const sigRaw  = document.getElementById('readFunction').value.trim();
-    const argsRaw = document.getElementById('readArgs').value.trim();
-
-    if (!addr || !sigRaw) return showResult('readResult', 'Fill in address and function signature.', 'error');
-
-    try {
-      const { name, params } = parseFunctionSig(sigRaw);
-      const args = parseArgs(argsRaw);
-
-      // Build ABI for this function
-      const abi = [{
-        name,
-        type: 'function',
-        stateMutability: 'view',
-        inputs: params.map((p, i) => ({ name: `a${i}`, type: p })),
-        outputs: [{ name: '', type: 'bytes' }]
-      }];
-
-      // Encode using browser's eth_call by building a simple selector-based call
-      // We'll use an ethers-compatible approach via a dynamic import of ethers from CDN
-      const data = await encodeAndCall(addr, name, params, args, true);
-      showResult('readResult', '✓ Result: ' + data, 'success');
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BASE_MAINNET.chainId }] });
     } catch (e) {
-      showResult('readResult', '✗ ' + e.message, 'error');
+      if (e.code === 4902) await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BASE_MAINNET] });
+      else throw e;
     }
-  }
-
-  // ─── Write ────────────────────────────────────────────────────────────────
-  async function callWriteFunction() {
-    if (!window.ethereum) return showResult('writeResult', 'Connect wallet first.', 'error');
-    const addr    = document.getElementById('writeAddress').value.trim();
-    const sigRaw  = document.getElementById('writeFunction').value.trim();
-    const argsRaw = document.getElementById('writeArgs').value.trim();
-    const valEth  = document.getElementById('writeValue').value.trim() || '0';
-
-    if (!addr || !sigRaw) return showResult('writeResult', 'Fill in address and function signature.', 'error');
-
-    try {
-      const { name, params } = parseFunctionSig(sigRaw);
-      const args = parseArgs(argsRaw);
-      const txHash = await encodeAndCall(addr, name, params, args, false, valEth);
-      const link = `https://basescan.org/tx/${txHash}`;
-      showResult('writeResult', `✓ Tx sent: ${txHash}\n`, 'success');
-      const el = document.getElementById('writeResult');
-      el.innerHTML += `<a class="tx-link" href="${link}" target="_blank">↗ View on Explorer</a>`;
-    } catch (e) {
-      showResult('writeResult', '✗ ' + e.message, 'error');
-    }
-  }
-
-  // ─── Deploy ───────────────────────────────────────────────────────────────
-  async function deployContract() {
-    if (!window.ethereum) return showResult('deployResult', 'Connect wallet first.', 'error');
-    const bytecode  = document.getElementById('deployBytecode').value.trim();
-    const extraArgs = document.getElementById('deployArgs').value.trim();
-    const valEth    = document.getElementById('deployValue').value.trim() || '0';
-
-    if (!bytecode) return showResult('deployResult', 'Paste your contract bytecode.', 'error');
-
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      const from = accounts[0];
-      const data = bytecode + (extraArgs.startsWith('0x') ? extraArgs.slice(2) : extraArgs);
-      const valueWei = '0x' + Math.floor(parseFloat(valEth) * 1e18).toString(16);
-
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [{ from, data, value: valueWei, gas: '0x493E0' }]
-      });
-
-      const link = `https://basescan.org/tx/${txHash}`;
-      showResult('deployResult', `✓ Deploying... Tx: ${txHash}`, 'success');
-      const el = document.getElementById('deployResult');
-      el.innerHTML += `<br/><a class="tx-link" href="${link}" target="_blank">↗ View on Explorer</a>`;
-
-      // Poll for receipt to get contract address
-      pollReceipt(txHash, 'deployResult');
-
-    } catch (e) {
-      showResult('deployResult', '✗ ' + e.message, 'error');
-    }
-  }
-
-  async function pollReceipt(txHash, resultId, attempts = 0) {
-    if (attempts > 30) return;
-    const receipt = await window.ethereum.request({
-      method: 'eth_getTransactionReceipt',
-      params: [txHash]
-    });
-    if (receipt && receipt.contractAddress) {
-      const el = document.getElementById(resultId);
-      el.innerHTML += `<br/>📦 Contract deployed at: <strong>${receipt.contractAddress}</strong>`;
-    } else {
-      setTimeout(() => pollReceipt(txHash, resultId, attempts + 1), 2000);
-    }
-  }
-
-  // ─── Core encoder using ethers.js (loaded from CDN) ──────────────────────
-  let ethers = null;
-
-  async function loadEthers() {
-    if (ethers) return ethers;
-    return new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js';
-      s.onload = () => { ethers = window.ethers; resolve(ethers); };
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  async function encodeAndCall(address, name, paramTypes, args, isRead, valueEth = '0') {
-    const lib = await loadEthers();
     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-    const from = accounts[0];
-
-    // Build minimal ABI
-    const abi = [{
-      name,
-      type: 'function',
-      stateMutability: isRead ? 'view' : 'nonpayable',
-      inputs:  paramTypes.map((t, i) => ({ name: `a${i}`, type: t })),
-      outputs: [{ name: '', type: 'bytes' }]
-    }];
-
-    const iface = new lib.Interface(abi);
-    const data  = iface.encodeFunctionData(name, args.length ? args : []);
-    const valueWei = '0x' + Math.floor(parseFloat(valueEth) * 1e18).toString(16);
-
-    if (isRead) {
-      const result = await window.ethereum.request({
-        method: 'eth_call',
-        params: [{ from, to: address, data }, 'latest']
-      });
-      // Try to decode; fall back to raw hex
-      try {
-        const decoded = iface.decodeFunctionResult(name, result);
-        return decoded.join(', ');
-      } catch {
-        return result;
-      }
-    } else {
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [{ from, to: address, data, value: valueWei }]
-      });
-      return txHash;
-    }
+    connectedAddress = accounts[0];
+    const balHex = await window.ethereum.request({ method: 'eth_getBalance', params: [connectedAddress, 'latest'] });
+    const balEth = (parseInt(balHex, 16) / 1e18).toFixed(4);
+    const short = connectedAddress.slice(0,6) + '...' + connectedAddress.slice(-4);
+    document.getElementById('walletAddress').textContent = short;
+    document.getElementById('walletBalance').textContent = balEth;
+    document.getElementById('disconnectedView').style.display = 'none';
+    document.getElementById('connectedView').style.display = 'block';
+    toast('✓ Connected to Base Mainnet');
+    window.ethereum.on('accountsChanged', () => location.reload());
+    window.ethereum.on('chainChanged', () => location.reload());
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = '🦊 Connect MetaMask';
+    if (err.code !== 4001) toast('✗ ' + err.message);
   }
+}
+
+function disconnectWallet() {
+  connectedAddress = null;
+  document.getElementById('disconnectedView').style.display = 'block';
+  document.getElementById('connectedView').style.display = 'none';
+  toast('Disconnected');
+}
+
+function copyAddr() {
+  navigator.clipboard.writeText(connectedAddress || '');
+  toast('📋 Address copied!');
+}
+
+function parseSig(sig) {
+  const m = sig.trim().match(/^(\w+)\s*\(([^)]*)\)$/);
+  if (!m) throw new Error('Invalid signature. Use format: functionName(type1,type2)');
+  const params = m[2].trim() === '' ? [] : m[2].split(',').map(s => s.trim());
+  return { name: m[1], params };
+}
+
+function parseArgs(str) {
+  if (!str.trim()) return [];
+  return str.split(',').map(s => s.trim());
+}
+
+function showResult(id, headerId, bodyId, status, head, body, link) {
+  document.getElementById(id).style.display = 'block';
+  const hEl = document.getElementById(headerId);
+  hEl.className = 'result-header ' + status;
+  hEl.innerHTML = head + (link
+    ? `<a class="tx-link" href="${link}" target="_blank">↗ Explorer</a>`
+    : `<button class="copy-btn" onclick="copyResult('${bodyId}')">Copy</button>`);
+  document.getElementById(bodyId).innerHTML = body;
+}
+
+function copyResult(id) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent || '');
+  toast('📋 Copied!');
+}
+
+function setLoading(btnId, loading, text) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.innerHTML = loading ? `<span class="spinner"></span> ${text}` : text;
+}
+
+async function encodeAndCall(address, name, paramTypes, args, isRead, valueEth = '0') {
+  const lib = await loadEthers();
+  const from = connectedAddress;
+  const abi = [{
+    name, type: 'function',
+    stateMutability: isRead ? 'view' : 'nonpayable',
+    inputs: paramTypes.map((t, i) => ({ name: `a${i}`, type: t })),
+    outputs: isRead ? [{ name: '', type: 'bytes' }] : []
+  }];
+  const iface = new lib.Interface(abi);
+  const data  = iface.encodeFunctionData(name, args.length ? args : []);
+  const valueWei = '0x' + Math.floor(parseFloat(valueEth || '0') * 1e18).toString(16);
+  if (isRead) {
+    const result = await window.ethereum.request({ method: 'eth_call', params: [{ from, to: address, data }, 'latest'] });
+    try { return iface.decodeFunctionResult(name, result).map(v => v.toString()).join(', '); }
+    catch { return result; }
+  } else {
+    return await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from, to: address, data, value: valueWei }] });
+  }
+}
+
+async function callRead() {
+  if (!connectedAddress) return toast('⚠️ Connect your wallet first');
+  const addr   = document.getElementById('readAddress').value.trim();
+  const sigRaw = document.getElementById('readFunction').value.trim();
+  const argsRaw = document.getElementById('readArgs').value.trim();
+  if (!addr) return toast('⚠️ Enter a contract address');
+  if (!sigRaw) return toast('⚠️ Enter a function signature');
+  setLoading('readBtn', true, 'Calling…');
+  try {
+    const { name, params } = parseSig(sigRaw);
+    const result = await encodeAndCall(addr, name, params, parseArgs(argsRaw), true);
+    showResult('readResult','readResultHeader','readResultBody','success','✓ Result', result, null);
+  } catch (e) {
+    showResult('readResult','readResultHeader','readResultBody','error','✗ Error', e.message, null);
+  } finally { setLoading('readBtn', false, 'Call Function'); }
+}
+
+async function callWrite() {
+  if (!connectedAddress) return toast('⚠️ Connect your wallet first');
+  const addr   = document.getElementById('writeAddress').value.trim();
+  const sigRaw = document.getElementById('writeFunction').value.trim();
+  const argsRaw = document.getElementById('writeArgs').value.trim();
+  const valEth = document.getElementById('writeValue').value.trim();
+  if (!addr) return toast('⚠️ Enter a contract address');
+  if (!sigRaw) return toast('⚠️ Enter a function signature');
+  setLoading('writeBtn', true, 'Waiting for MetaMask…');
+  try {
+    const { name, params } = parseSig(sigRaw);
+    const txHash = await encodeAndCall(addr, name, params, parseArgs(argsRaw), false, valEth);
+    const short = txHash.slice(0,10) + '...' + txHash.slice(-6);
+    showResult('writeResult','writeResultHeader','writeResultBody','success','✓ Transaction Sent',
+      `Tx: <span style="color:var(--text)">${short}</span>`, `https://basescan.org/tx/${txHash}`);
+    toast('✓ Transaction submitted!');
+  } catch (e) {
+    if (e.code !== 4001) showResult('writeResult','writeResultHeader','writeResultBody','error','✗ Error', e.message, null);
+  } finally { setLoading('writeBtn', false, 'Send Transaction'); }
+}
+
+async function deployContract() {
+  if (!connectedAddress) return toast('⚠️ Connect your wallet first');
+  const bytecode = document.getElementById('deployBytecode').value.trim();
+  const initMsg  = document.getElementById('deployInitMsg').value.trim();
+  const ctorSig  = document.getElementById('deployCtorSig').value.trim();
+  const valEth   = document.getElementById('deployValue').value.trim();
+  if (!bytecode) return toast('⚠️ Paste your contract bytecode first');
+  setLoading('deployBtn', true, 'Waiting for MetaMask…');
+  try {
+    const lib = await loadEthers();
+    let data = bytecode.startsWith('0x') ? bytecode : '0x' + bytecode;
+    if (initMsg) {
+      try {
+        const types = ctorSig ? ctorSig.replace(/^\(|\)$/g,'').split(',').map(s=>s.trim()) : ['string'];
+        const args  = initMsg.split(',').map(s=>s.trim());
+        const encoded = lib.AbiCoder.defaultAbiCoder().encode(types, args);
+        data += encoded.slice(2);
+      } catch (e) { toast('⚠️ Could not encode constructor args: ' + e.message); setLoading('deployBtn',false,'🚀 Deploy Contract'); return; }
+    }
+    const valueWei = '0x' + Math.floor(parseFloat(valEth||'0')*1e18).toString(16);
+    const txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: connectedAddress, data, value: valueWei }] });
+    const resEl = document.getElementById('deployResult');
+    resEl.style.display = 'block';
+    document.getElementById('deployResultHeader').className = 'result-header info';
+    document.getElementById('deployResultHeader').innerHTML = `⏳ Deploying… <a class="tx-link" href="https://basescan.org/tx/${txHash}" target="_blank">↗ View Tx</a>`;
+    document.getElementById('deployResultBody').innerHTML = `Tx: <span style="color:var(--text2);font-size:11px">${txHash}</span><br/><br/>Waiting for confirmation…`;
+    setLoading('deployBtn', true, 'Confirming…');
+    pollReceipt(txHash);
+  } catch (e) {
+    setLoading('deployBtn', false, '🚀 Deploy Contract');
+    if (e.code !== 4001) toast('✗ ' + e.message);
+  }
+}
+
+async function pollReceipt(txHash, attempts = 0) {
+  if (attempts > 40) { setLoading('deployBtn', false, '🚀 Deploy Contract'); return; }
+  try {
+    const receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [txHash] });
+    if (receipt && receipt.contractAddress) {
+      const addr = receipt.contractAddress;
+      document.getElementById('deployResultHeader').className = 'result-header success';
+      document.getElementById('deployResultHeader').innerHTML = `✓ Deployed! <a class="tx-link" href="https://basescan.org/address/${addr}" target="_blank">↗ View Contract</a>`;
+      document.getElementById('deployResultBody').innerHTML =
+        `📦 Contract Address:<br/><strong style="color:var(--green);font-size:13px">${addr}</strong><br/><br/>
+        <button class="btn btn-ghost btn-sm" style="margin-right:8px" onclick="copyDeployedAddr('${addr}')">📋 Copy Address</button>
+        <button class="btn btn-ghost btn-sm" onclick="useInRead('${addr}')">📖 Use in Read tab</button>`;
+      document.getElementById('deployStep4').classList.add('done');
+      document.getElementById('deployStep4').querySelector('.step-num').textContent = '✓';
+      setLoading('deployBtn', false, '🚀 Deploy Another');
+      toast('🎉 Contract deployed on Base Mainnet!', 4000);
+    } else { setTimeout(() => pollReceipt(txHash, attempts+1), 2000); }
+  } catch { setTimeout(() => pollReceipt(txHash, attempts+1), 2000); }
+}
+
+function copyDeployedAddr(addr) { navigator.clipboard.writeText(addr); toast('📋 Contract address copied!'); }
+function useInRead(addr) { document.getElementById('readAddress').value = addr; switchTab('read'); toast('✓ Address loaded into Read tab'); }
 </script>
 </body>
 </html>
