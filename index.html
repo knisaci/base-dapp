@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Base L2 dApp</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0b0f;
+      color: #e8eaf6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+
+    header .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #0052ff, #00b4ff);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; color: #fff;
+    }
+
+    header h1 { font-size: 22px; font-weight: 700; color: #fff; }
+    header span { font-size: 13px; color: #6c7a99; margin-top: 2px; display: block; }
+
+    .card {
+      background: #13151f;
+      border: 1px solid #1e2235;
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 480px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6c7a99;
+      margin-bottom: 16px;
+    }
+
+    .network-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0a1628;
+      border: 1px solid #0052ff44;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      color: #4d9fff;
+      margin-bottom: 16px;
+    }
+
+    .network-badge .dot {
+      width: 7px; height: 7px;
+      background: #0052ff;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .wallet-info {
+      background: #0d0f1a;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #8892a4;
+      word-break: break-all;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .wallet-info.visible { display: block; }
+    .wallet-info strong { color: #c4cde8; }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0052ff, #0099ff);
+      color: #fff;
+    }
+
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: #1a1e2e;
+      color: #c4cde8;
+      border: 1px solid #252a3d;
+      margin-top: 10px;
+    }
+
+    .btn-secondary:hover { background: #1e2338; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #6c7a99;
+      margin-bottom: 6px;
+      margin-top: 14px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      background: #0d0f1a;
+      border: 1px solid #1e2235;
+      border-radius: 10px;
+      color: #e8eaf6;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.15s;
+    }
+
+    input:focus, textarea:focus { border-color: #0052ff88; }
+
+    textarea { resize: vertical; min-height: 80px; font-family: monospace; }
+
+    .result-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: #0a0c14;
+      border-radius: 10px;
+      border-left: 3px solid #0052ff;
+      font-size: 13px;
+      color: #8892a4;
+      word-break: break-all;
+      display: none;
+    }
+
+    .result-box.visible { display: block; }
+    .result-box.error { border-color: #ff4d6d; color: #ff6b80; }
+    .result-box.success { border-color: #00d48a; color: #00e09a; }
+
+    .tx-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #4d9fff;
+      text-decoration: none;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .tx-link:hover { text-decoration: underline; }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: #0d0f1a;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 18px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: #6c7a99;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: auto;
+    }
+
+    .tab.active {
+      background: #1a1e2e;
+      color: #e8eaf6;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    footer {
+      font-size: 12px;
+      color: #3a4055;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">B</div>
+  <div>
+    <h1>Base L2 dApp</h1>
+    <span>Simple smart contract interface</span>
+  </div>
+</header>
+
+<!-- Wallet Card -->
+<div class="card">
+  <h2>Wallet</h2>
+  <div class="network-badge">
+    <span class="dot"></span>
+    Base Mainnet
+  </div>
+
+  <div class="wallet-info" id="walletInfo">
+    <strong>Connected:</strong><br/>
+    <span id="walletAddress">—</span><br/><br/>
+    <strong>Balance:</strong> <span id="walletBalance">—</span> ETH
+  </div>
+
+  <button class="btn-primary" id="connectBtn" onclick="connectWallet()">
+    Connect Wallet
+  </button>
+  <button class="btn-secondary" id="addNetworkBtn" onclick="addBaseNetwork()" style="display:none">
+    Add Base Sepolia to MetaMask
+  </button>
+</div>
+
+<!-- Contract Card -->
+<div class="card">
+  <h2>Smart Contract</h2>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('read')">Read</button>
+    <button class="tab" onclick="switchTab('write')">Write</button>
+    <button class="tab" onclick="switchTab('deploy')">Deploy</button>
+  </div>
+
+  <!-- READ TAB -->
+  <div class="tab-content active" id="tab-read">
+    <label>Contract Address</label>
+    <input type="text" id="readAddress" placeholder="0x..." />
+
+    <label>Function Signature</label>
+    <input type="text" id="readFunction" placeholder='e.g. getValue() or balanceOf(address)' />
+
+    <label>Arguments (comma-separated, optional)</label>
+    <input type="text" id="readArgs" placeholder='e.g. 0xAbc123...' />
+
+    <button class="btn-primary" style="margin-top:16px" onclick="callReadFunction()">Call Function</button>
+
+    <div class="result-box" id="readResult"></div>
+  </div>
+
+  <!-- WRITE TAB -->
+  <div class="tab-content" id="tab-write">
+    <label>Contract Address</label>
+    <input type="text" id="writeAddress" placeholder="0x..." />
+
+    <label>Function Signature</label>
+    <input type="text" id="writeFunction" placeholder='e.g. setValue(uint256) or transfer(address,uint256)' />
+
+    <label>Arguments (comma-separated)</label>
+    <input type="text" id="writeArgs" placeholder='e.g. 42 or 0xAbc..., 1000' />
+
+    <label>ETH to send (optional)</label>
+    <input type="text" id="writeValue" placeholder="0.0" />
+
+    <button class="btn-primary" style="margin-top:16px" onclick="callWriteFunction()">Send Transaction</button>
+
+    <div class="result-box" id="writeResult"></div>
+  </div>
+
+  <!-- DEPLOY TAB -->
+  <div class="tab-content" id="tab-deploy">
+    <label>Bytecode (hex)</label>
+    <textarea id="deployBytecode" placeholder="0x608060..."></textarea>
+
+    <label>ABI-encoded constructor args (optional)</label>
+    <input type="text" id="deployArgs" placeholder="0x000..." />
+
+    <label>ETH value to send (optional)</label>
+    <input type="text" id="deployValue" placeholder="0.0" />
+
+    <button class="btn-primary" style="margin-top:16px" onclick="deployContract()">Deploy Contract</button>
+
+    <div class="result-box" id="deployResult"></div>
+  </div>
+</div>
+
+<footer>Built on Base Mainnet · Uses MetaMask / EIP-1193 provider</footer>
+
+<script>
+  // ─── Config ───────────────────────────────────────────────────────────────
+  const BASE_SEPOLIA = {
+    chainId: '0x2105',           // 8453 in decimal — Base Mainnet
+    chainName: 'Base',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: ['https://mainnet.base.org'],
+    blockExplorerUrls: ['https://basescan.org']
+  };
+
+  let provider = null;
+  let signer   = null;
+
+  // ─── Tab switching ────────────────────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      const names = ['read','write','deploy'];
+      t.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(c => {
+      c.classList.toggle('active', c.id === 'tab-' + name);
+    });
+  }
+
+  // ─── Wallet ───────────────────────────────────────────────────────────────
+  async function connectWallet() {
+    if (!window.ethereum) {
+      alert('MetaMask not detected. Please install it from metamask.io');
+      return;
+    }
+    try {
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+      // Switch / add Base Sepolia
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: BASE_SEPOLIA.chainId }]
+        });
+      } catch (e) {
+        if (e.code === 4902) {
+          await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BASE_SEPOLIA] });
+        }
+      }
+
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      const addr = accounts[0];
+      const balHex = await window.ethereum.request({ method: 'eth_getBalance', params: [addr, 'latest'] });
+      const balEth = (parseInt(balHex, 16) / 1e18).toFixed(6);
+
+      document.getElementById('walletAddress').textContent = addr;
+      document.getElementById('walletBalance').textContent  = balEth;
+      document.getElementById('walletInfo').classList.add('visible');
+      document.getElementById('connectBtn').textContent = 'Connected ✓';
+      document.getElementById('connectBtn').disabled = true;
+      document.getElementById('addNetworkBtn').style.display = 'none';
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('addNetworkBtn').style.display = 'block';
+      showResult('readResult', 'Connection failed: ' + err.message, 'error');
+    }
+  }
+
+  async function addBaseNetwork() {
+    if (!window.ethereum) return;
+    await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BASE_SEPOLIA] });
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+  function showResult(id, msg, type = '') {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = 'result-box visible' + (type ? ' ' + type : '');
+  }
+
+  function parseFunctionSig(sig) {
+    // e.g. "getValue()" → { name: 'getValue', params: [] }
+    // e.g. "transfer(address,uint256)" → { name: 'transfer', params: ['address','uint256'] }
+    const m = sig.trim().match(/^(\w+)\s*\(([^)]*)\)$/);
+    if (!m) throw new Error('Invalid function signature: ' + sig);
+    const params = m[2].trim() === '' ? [] : m[2].split(',').map(s => s.trim());
+    return { name: m[1], params };
+  }
+
+  function encodeCalldata(sig) {
+    // Minimal ABI encoding using eth_call via MetaMask
+    // We build a minimal ABI object and encode via JSON-RPC
+    // For simplicity we use ethers-free approach: encode function selector + args manually
+    // We'll use a tiny inline encoder for common types.
+    // For full ABI support, include ethers.js.
+    return sig; // placeholder – see encodeCall()
+  }
+
+  // Tiny ABI encoder (supports: uint256, address, bool, bytes32, string basics)
+  function keccak256Sig(sig) {
+    // We use eth_call with the data field constructed via a simple helper
+    // Since we can't run keccak in pure JS without a library,
+    // we'll use a precomputed approach via eth_call with ABI JSON
+    return sig;
+  }
+
+  function buildABI(name, params, isView) {
+    return [{
+      name,
+      type: 'function',
+      stateMutability: isView ? 'view' : 'nonpayable',
+      inputs: params.map((p, i) => ({ name: `arg${i}`, type: p })),
+      outputs: [{ name: 'result', type: 'bytes' }]
+    }];
+  }
+
+  // Parse args string into array
+  function parseArgs(str) {
+    if (!str.trim()) return [];
+    return str.split(',').map(s => s.trim());
+  }
+
+  // ─── Read ─────────────────────────────────────────────────────────────────
+  async function callReadFunction() {
+    if (!window.ethereum) return showResult('readResult', 'Connect wallet first.', 'error');
+    const addr    = document.getElementById('readAddress').value.trim();
+    const sigRaw  = document.getElementById('readFunction').value.trim();
+    const argsRaw = document.getElementById('readArgs').value.trim();
+
+    if (!addr || !sigRaw) return showResult('readResult', 'Fill in address and function signature.', 'error');
+
+    try {
+      const { name, params } = parseFunctionSig(sigRaw);
+      const args = parseArgs(argsRaw);
+
+      // Build ABI for this function
+      const abi = [{
+        name,
+        type: 'function',
+        stateMutability: 'view',
+        inputs: params.map((p, i) => ({ name: `a${i}`, type: p })),
+        outputs: [{ name: '', type: 'bytes' }]
+      }];
+
+      // Encode using browser's eth_call by building a simple selector-based call
+      // We'll use an ethers-compatible approach via a dynamic import of ethers from CDN
+      const data = await encodeAndCall(addr, name, params, args, true);
+      showResult('readResult', '✓ Result: ' + data, 'success');
+    } catch (e) {
+      showResult('readResult', '✗ ' + e.message, 'error');
+    }
+  }
+
+  // ─── Write ────────────────────────────────────────────────────────────────
+  async function callWriteFunction() {
+    if (!window.ethereum) return showResult('writeResult', 'Connect wallet first.', 'error');
+    const addr    = document.getElementById('writeAddress').value.trim();
+    const sigRaw  = document.getElementById('writeFunction').value.trim();
+    const argsRaw = document.getElementById('writeArgs').value.trim();
+    const valEth  = document.getElementById('writeValue').value.trim() || '0';
+
+    if (!addr || !sigRaw) return showResult('writeResult', 'Fill in address and function signature.', 'error');
+
+    try {
+      const { name, params } = parseFunctionSig(sigRaw);
+      const args = parseArgs(argsRaw);
+      const txHash = await encodeAndCall(addr, name, params, args, false, valEth);
+      const link = `https://basescan.org/tx/${txHash}`;
+      showResult('writeResult', `✓ Tx sent: ${txHash}\n`, 'success');
+      const el = document.getElementById('writeResult');
+      el.innerHTML += `<a class="tx-link" href="${link}" target="_blank">↗ View on Explorer</a>`;
+    } catch (e) {
+      showResult('writeResult', '✗ ' + e.message, 'error');
+    }
+  }
+
+  // ─── Deploy ───────────────────────────────────────────────────────────────
+  async function deployContract() {
+    if (!window.ethereum) return showResult('deployResult', 'Connect wallet first.', 'error');
+    const bytecode  = document.getElementById('deployBytecode').value.trim();
+    const extraArgs = document.getElementById('deployArgs').value.trim();
+    const valEth    = document.getElementById('deployValue').value.trim() || '0';
+
+    if (!bytecode) return showResult('deployResult', 'Paste your contract bytecode.', 'error');
+
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      const from = accounts[0];
+      const data = bytecode + (extraArgs.startsWith('0x') ? extraArgs.slice(2) : extraArgs);
+      const valueWei = '0x' + Math.floor(parseFloat(valEth) * 1e18).toString(16);
+
+      const txHash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{ from, data, value: valueWei, gas: '0x493E0' }]
+      });
+
+      const link = `https://basescan.org/tx/${txHash}`;
+      showResult('deployResult', `✓ Deploying... Tx: ${txHash}`, 'success');
+      const el = document.getElementById('deployResult');
+      el.innerHTML += `<br/><a class="tx-link" href="${link}" target="_blank">↗ View on Explorer</a>`;
+
+      // Poll for receipt to get contract address
+      pollReceipt(txHash, 'deployResult');
+
+    } catch (e) {
+      showResult('deployResult', '✗ ' + e.message, 'error');
+    }
+  }
+
+  async function pollReceipt(txHash, resultId, attempts = 0) {
+    if (attempts > 30) return;
+    const receipt = await window.ethereum.request({
+      method: 'eth_getTransactionReceipt',
+      params: [txHash]
+    });
+    if (receipt && receipt.contractAddress) {
+      const el = document.getElementById(resultId);
+      el.innerHTML += `<br/>📦 Contract deployed at: <strong>${receipt.contractAddress}</strong>`;
+    } else {
+      setTimeout(() => pollReceipt(txHash, resultId, attempts + 1), 2000);
+    }
+  }
+
+  // ─── Core encoder using ethers.js (loaded from CDN) ──────────────────────
+  let ethers = null;
+
+  async function loadEthers() {
+    if (ethers) return ethers;
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js';
+      s.onload = () => { ethers = window.ethers; resolve(ethers); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function encodeAndCall(address, name, paramTypes, args, isRead, valueEth = '0') {
+    const lib = await loadEthers();
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    const from = accounts[0];
+
+    // Build minimal ABI
+    const abi = [{
+      name,
+      type: 'function',
+      stateMutability: isRead ? 'view' : 'nonpayable',
+      inputs:  paramTypes.map((t, i) => ({ name: `a${i}`, type: t })),
+      outputs: [{ name: '', type: 'bytes' }]
+    }];
+
+    const iface = new lib.Interface(abi);
+    const data  = iface.encodeFunctionData(name, args.length ? args : []);
+    const valueWei = '0x' + Math.floor(parseFloat(valueEth) * 1e18).toString(16);
+
+    if (isRead) {
+      const result = await window.ethereum.request({
+        method: 'eth_call',
+        params: [{ from, to: address, data }, 'latest']
+      });
+      // Try to decode; fall back to raw hex
+      try {
+        const decoded = iface.decodeFunctionResult(name, result);
+        return decoded.join(', ');
+      } catch {
+        return result;
+      }
+    } else {
+      const txHash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{ from, to: address, data, value: valueWei }]
+      });
+      return txHash;
+    }
+  }
+</script>
+</body>
+</html>
