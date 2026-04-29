@@ -469,15 +469,122 @@ function upPrev(t) {
   }
 }
 
-// ── BYTECODES (pre-compiled, deployment-ready) ──
-// SimpleStorage: constructor(string), getMessage() view, setMessage(string)
-const BC_STORAGE = '0x608060405234801561001057600080fd5b506040516107d33803806107d383398181016040528101906100329190610178565b80600090816100419190610391565b505061046f565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6100aa82610061565b810181811067ffffffffffffffff821117156100c9576100c8610072565b5b80604052505050565b60006100dc610048565b90506100e882826100a1565b919050565b600067ffffffffffffffff82111561010857610107610072565b5b61011182610061565b9050602081019050919050565b82818337600083830152505050565b600061014061013b846100ed565b6100d2565b90508281526020810184848401111561015c5761015b61005c565b5b61016784828561011e565b509392505050565b600082601f83011261018457610183610057565b5b815161019484826020860161012d565b91505092915050565b6000602082840312156101e9576101e861004d565b5b600082015167ffffffffffffffff81111561020757610206610052565b5b61021384828501610178565b91505092915050565b600081519050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602260045260246000fd5b6000600282049050600182168061026e57607f821691505b60208210810361028157610280610227565b5b50919050565b60008190508160005260206000209050919050565b60006020601f8301049050919050565b600082821b905092915050565b6000600883026102e97fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff826102ac565b6102f386836102ac565b95508019841693508086168417925050509392505050565b6000819050919050565b600061033061032b610326846102b9565b6102b9565b6102b9565b9050919050565b6000819050919050565b61034a83610315565b61035e61035682610337565b8484546102b9565b825550505050565b600090565b610373610366565b61037e818484610341565b505050565b5b818110156103a257610397600082610383565b600181019050610384565b5050565b601f8211156103e7576103b881610287565b6103c18461029c565b810160208510156103d0578190505b6103e46103dc8561029c565b830182610383565b50505b505050565b600082821c905092915050565b600061040a600019846008026103ec565b1980831691505092915050565b600061042383836103f9565b9150826002028217905092915050565b61043c8261021c565b67ffffffffffffffff81111561045557610454610072565b5b61045f8254610256565b61046a8282856103a6565b600060209050601f83116001811461049d576000841561048b578287015190505b6104958582610417565b8655506104fd565b601f1984166104ab86610287565b60005b828110156104d3578489015182556001820191506020850194506020810190506104ae565b868310156104f057848901516104ec601f8916826103f9565b8355505b6001600288020188555050505b505050505050565b6102558061051c6000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c8063368b87721461003b578063ce6d41de14610057575b600080fd5b610055600480360381019061005091906101a2565b610075565b005b61005f610088565b60405161006c91906101fb565b60405180910390f35b806000908161008491906103c7565b5050565b606060008054610097906101c4565b80601f01602080910402602001604051908101604052809291908181526020018280546100c3906101c4565b80156101105780601f106100e557610100808354040283529160200191610110565b820191906000526020600020905b8154815290600101906020018083116100f357829003601f168201915b5050505050905090565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6101808261013d565b810181811067ffffffffffffffff8211171561019f5761019e61014e565b5b80604052505050565b60006101b261011a565b90506101be8282610177565b919050565b600067ffffffffffffffff8211156101de576101dd61014e565b5b6101e78261013d565b9050602081019050919050565b82818337600083830152505050565b600061021661021184610177565b6101a8565b90508281526020810184848401111561023257610231610138565b5b61023d8482856101f4565b509392505050565b600082601f83011261025a57610259610128565b5b813561026a8482602086016101ff565b91505092915050565b60006020828403121561028957610288610123565b5b600082013567ffffffffffffffff8111156102a7576102a6610128565b5b6102b384828501610245565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602260045260246000fd5b6000600282049050600182168061030357607f821691505b60208210810361031657610315610259565b5b50919050565b60008190508160005260206000209050919050565b60006020601f8301049050919050565b600082821b905092915050565b6000600883026103777fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8261034a565b6103818683610350565b95508019841693508086168417925050509392505050565b6000819050919050565b60006103be6103b96103b484610399565b610399565b610399565b9050919050565b6000819050919050565b6103d8836103a3565b6103ec6103e4826103cb565b848454610357565b825550505050565b600090565b610401610404565b61040c8184846103cf565b505050565b5b8181101561043057610425600082610409565b60018101905061041256';
+// ── SOLIDITY SOURCES ──
+// These get compiled via solc-js at deploy time — no hardcoded bytecode needed
+const SOURCES = {
+  storage: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+contract SimpleStorage {
+    string private message;
+    constructor(string memory _msg) { message = _msg; }
+    function getMessage() public view returns (string memory) { return message; }
+    function setMessage(string memory _msg) public { message = _msg; }
+}`,
+  erc20: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+contract ERC20Token {
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    constructor(string memory _name, string memory _symbol, uint256 _supply, uint8 _decimals) {
+        name = _name; symbol = _symbol; decimals = _decimals;
+        totalSupply = _supply * (10 ** uint256(_decimals));
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+    function transfer(address to, uint256 value) public returns (bool) {
+        require(balanceOf[msg.sender] >= value, "Insufficient balance");
+        balanceOf[msg.sender] -= value; balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value); return true;
+    }
+    function approve(address spender, uint256 value) public returns (bool) {
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value); return true;
+    }
+    function transferFrom(address from, address to, uint256 value) public returns (bool) {
+        require(balanceOf[from] >= value, "Insufficient balance");
+        require(allowance[from][msg.sender] >= value, "Insufficient allowance");
+        balanceOf[from] -= value; balanceOf[to] += value;
+        allowance[from][msg.sender] -= value;
+        emit Transfer(from, to, value); return true;
+    }
+}`,
+  nft: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+contract NFTCollection {
+    string public name;
+    string public symbol;
+    address public owner;
+    uint256 public totalSupply;
+    mapping(uint256 => address) public ownerOf;
+    mapping(address => uint256) public balanceOf;
+    mapping(uint256 => address) public getApproved;
+    mapping(uint256 => string) private _tokenURIs;
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+    constructor(string memory _name, string memory _symbol) {
+        name = _name; symbol = _symbol; owner = msg.sender;
+    }
+    modifier onlyOwner() { require(msg.sender == owner, "Not owner"); _; }
+    function mint(address to, uint256 tokenId) public onlyOwner {
+        require(ownerOf[tokenId] == address(0), "Already minted");
+        ownerOf[tokenId] = to; balanceOf[to]++; totalSupply++;
+        emit Transfer(address(0), to, tokenId);
+    }
+    function transfer(address to, uint256 tokenId) public {
+        require(ownerOf[tokenId] == msg.sender, "Not owner");
+        balanceOf[msg.sender]--; balanceOf[to]++;
+        ownerOf[tokenId] = to; emit Transfer(msg.sender, to, tokenId);
+    }
+    function tokenURI(uint256 tokenId) public view returns (string memory) { return _tokenURIs[tokenId]; }
+}`
+};
 
-// Minimal ERC-20: constructor(string name, string symbol, uint256 supply, uint8 decimals)
-const BC_ERC20 = '0x60806040523480156200001157600080fd5b506040516200197038038062001970833981810160405281019062000037919062000317565b83836003908162000049919062000604565b5082600490816200005b919062000604565b5050506200006e6200013060201b60201c565b6000620000816200013960201b60201c565b9050806005819055507f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0600073ffffffffffffffffffffffffffffffffffffffff168273ffffffffffffffffffffffffffffffffffffffff167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3620001236200014160201b60201c565b8260ff16600a620001359190620007e8565b826200014291906200083f565b6200014e919062000839565b6006600062000163620001486020b60201c565b73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055505050505062000900565b60006012905090565b600033905090565b600033905090565b';
+// ── SOLC COMPILER ──
+let solc = null;
 
-// Minimal ERC-721: constructor(string name, string symbol)
-const BC_NFT = '0x60806040523480156200001157600080fd5b5060405162002a1138038062002a118339818101604052810190620000379190620002c3565b818160009081620000499190620005a1565b508060019081620000579190620005a1565b505050620006a4565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000006000526041600452602460006000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b620000e28262000083565b810181811067ffffffffffffffff82111715620001045762000103620000b0565b5b80604052505050565b600062000119620000a0565b9050620001278282620000d7565b919050565b600067ffffffffffffffff8211156200014a576200014962000b0565b5b620001538262000083565b9050602081019050919050565b60005b838110156200018057808201518184015260208101905062000163565b60008484015250505050565b6000620001a36200019d846200012c565b6200010d565b905082815260208101848484011115620001c257620001c162000078565b5b620001cf8482856200015e565b509392505050565b600082601f830112620001ef57620001ee62000073565b5b8151620002018482602086016200018c565b91505092915050565b600080604083850312156200022457620002236200006e565b5b600083015167ffffffffffffffff8111156200024557620002446200006e565b5b6200025385828601620001d7565b925050602083015167ffffffffffffffff8111156200027757620002766200006e565b5b6200028585828601620001d7565b9150509250929050565b600081519050919050565b600082825260208201905092915050565b60005b83811015620002ca57808201518184015260208101905062000293565b60008484015250505050565b6000620002e3826200028f565b620002ef81856200029a565b93506200030181856020860162000ab5565b6200030c8162000083565b840191505092915050565b600060208201905081810360008301526200033381846200026d565b905092915050565b';
+async function loadSolc() {
+  if (solc) return solc;
+  toast('⏳ Loading compiler…', 5000);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://binaries.soliditylang.org/bin/soljson-v0.8.19+commit.7dd6d404.js';
+    s.onload = () => {
+      // wrapper to use solc in browser
+      const w = window.Module;
+      solc = {
+        compile: (input) => {
+          const output = w.cwrap('solidity_compile', 'string', ['string'])(input);
+          return JSON.parse(output);
+        }
+      };
+      resolve(solc);
+    };
+    s.onerror = () => reject(new Error('Failed to load Solidity compiler'));
+    document.head.appendChild(s);
+  });
+}
+
+async function compileSolidity(contractName, source) {
+  const compiler = await loadSolc();
+  const input = JSON.stringify({
+    language: 'Solidity',
+    sources: { 'contract.sol': { content: source } },
+    settings: { outputSelection: { '*': { '*': ['abi', 'evm.bytecode'] } } }
+  });
+  const output = compiler.compile(input);
+  const contract = output.contracts?.['contract.sol']?.[contractName];
+  if (!contract) {
+    const errors = output.errors?.map(e => e.message).join('\n') || 'Unknown error';
+    throw new Error('Compilation failed: ' + errors);
+  }
+  return '0x' + contract.evm.bytecode.object;
+}
 
 // ── DEPLOY ──
 async function buildDeploy(tpl) {
@@ -491,40 +598,47 @@ async function buildDeploy(tpl) {
   let data = '';
 
   try {
+    setBtn(btnId, true, 'Compiling contract…');
+
     if (tpl === 'storage') {
       const msg = document.getElementById('s-msg').value.trim();
-      if (!msg) return toast('⚠️ Enter an initial message');
+      if (!msg) { setBtn(btnId, false, deployLabel(tpl)); return toast('⚠️ Enter an initial message'); }
+      const bytecode = await compileSolidity('SimpleStorage', SOURCES.storage);
       const enc = lib.AbiCoder.defaultAbiCoder().encode(['string'], [msg]);
-      data = BC_STORAGE + enc.slice(2);
+      data = bytecode + enc.slice(2);
 
     } else if (tpl === 'erc20') {
       const name   = document.getElementById('e-name').value.trim();
       const sym    = document.getElementById('e-sym').value.trim().toUpperCase();
       const supply = document.getElementById('e-supply').value.trim();
       const dec    = parseInt(document.getElementById('e-dec').value.trim() || '18');
-      if (!name) return toast('⚠️ Enter a token name');
-      if (!sym)  return toast('⚠️ Enter a symbol');
-      if (!supply || isNaN(supply)) return toast('⚠️ Enter a valid total supply');
-      if (dec < 0 || dec > 18) return toast('⚠️ Decimals must be 0–18');
+      if (!name) { setBtn(btnId, false, deployLabel(tpl)); return toast('⚠️ Enter a token name'); }
+      if (!sym)  { setBtn(btnId, false, deployLabel(tpl)); return toast('⚠️ Enter a symbol'); }
+      if (!supply || isNaN(supply)) { setBtn(btnId, false, deployLabel(tpl)); return toast('⚠️ Enter a valid total supply'); }
+      if (dec < 0 || dec > 18) { setBtn(btnId, false, deployLabel(tpl)); return toast('⚠️ Decimals must be 0–18'); }
+      const bytecode = await compileSolidity('ERC20Token', SOURCES.erc20);
       const enc = lib.AbiCoder.defaultAbiCoder().encode(
         ['string', 'string', 'uint256', 'uint8'],
         [name, sym, BigInt(supply), dec]
       );
-      data = BC_ERC20 + enc.slice(2);
+      data = bytecode + enc.slice(2);
 
     } else if (tpl === 'nft') {
       const name = document.getElementById('n-name').value.trim();
       const sym  = document.getElementById('n-sym').value.trim().toUpperCase();
-      if (!name) return toast('⚠️ Enter a collection name');
-      if (!sym)  return toast('⚠️ Enter a symbol');
+      if (!name) { setBtn(btnId, false, deployLabel(tpl)); return toast('⚠️ Enter a collection name'); }
+      if (!sym)  { setBtn(btnId, false, deployLabel(tpl)); return toast('⚠️ Enter a symbol'); }
+      const bytecode = await compileSolidity('NFTCollection', SOURCES.nft);
       const enc = lib.AbiCoder.defaultAbiCoder().encode(['string', 'string'], [name, sym]);
-      data = BC_NFT + enc.slice(2);
+      data = bytecode + enc.slice(2);
     }
   } catch(e) {
-    return toast('⚠️ Encoding error: ' + e.message);
+    setBtn(btnId, false, deployLabel(tpl));
+    return toast('⚠️ ' + e.message);
   }
 
   setBtn(btnId, true, 'Waiting for MetaMask…');
+  toast('✓ Compiled! Check MetaMask…', 2000);
 
   try {
     const tx = await window.ethereum.request({
