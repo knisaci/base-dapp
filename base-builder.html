@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Base Contract Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#07080f; --s1:#0d0f1a; --s2:#131520; --s3:#1a1d2e;
+      --b1:#1e2235; --b2:#272b42;
+      --blue:#0052ff; --blue2:#3d7fff; --blue3:#5c96ff; --glow:rgba(0,82,255,0.18);
+      --green:#00d48a; --red:#ff4060; --yellow:#ffd166;
+      --t1:#eef0ff; --t2:#9aa3c8; --t3:#4e5578;
+      --mono:'IBM Plex Mono',monospace;
+      --sans:'DM Sans',sans-serif;
+      --display:'Syne',sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;}
+    .orb{position:fixed;pointer-events:none;border-radius:50%;filter:blur(90px);opacity:0.09;z-index:0;}
+    .orb1{width:700px;height:700px;background:var(--blue);top:-250px;right:-200px;}
+    .orb2{width:500px;height:500px;background:#7c3aed;bottom:-150px;left:-150px;}
+
+    /* ── NAV ── */
+    nav{
+      position:sticky;top:0;z-index:100;
+      display:flex;align-items:center;gap:12px;
+      padding:14px 28px;
+      background:rgba(7,8,15,0.88);
+      backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--b1);
+    }
+    .logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:18px;font-weight:800;color:var(--t1);}
+    .logo-dot{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue),#00b4ff);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;box-shadow:0 0 18px rgba(0,82,255,0.5);}
+    .logo-sub{font-size:11px;color:var(--t3);font-weight:400;font-family:var(--mono);margin-top:1px;}
+    .nav-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+    .net-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(0,82,255,0.08);border:1px solid rgba(0,82,255,0.2);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;color:var(--blue3);font-family:var(--mono);}
+    .pdot{width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,212,138,0.5);}50%{opacity:.7;box-shadow:0 0 0 4px rgba(0,212,138,0);}}
+    .wbtn{padding:8px 16px;border-radius:9px;border:1px solid var(--b2);background:var(--s2);color:var(--t2);font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+    .wbtn:hover{border-color:var(--blue);color:var(--t1);}
+    .wbtn.on{border-color:rgba(0,212,138,0.35);color:var(--green);background:rgba(0,212,138,0.06);}
+
+    /* ── LAYOUT ── */
+    .wrap{max-width:640px;margin:0 auto;padding:40px 20px 80px;position:relative;z-index:1;}
+
+    /* ── HERO ── */
+    .hero{margin-bottom:36px;}
+    .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,82,255,0.08);border:1px solid rgba(0,82,255,0.18);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--blue3);font-family:var(--mono);margin-bottom:14px;}
+    .hero h1{font-family:var(--display);font-size:clamp(26px,5vw,38px);font-weight:800;letter-spacing:-0.5px;line-height:1.1;margin-bottom:8px;}
+    .hero h1 span{background:linear-gradient(135deg,var(--blue2),#00c4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .hero p{font-size:14px;color:var(--t2);line-height:1.7;}
+
+    /* ── TEMPLATE PICKER ── */
+    .tpicker-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--t3);margin-bottom:12px;}
+    .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px;}
+    .tcard{
+      background:var(--s1);border:2px solid var(--b1);border-radius:14px;
+      padding:18px 14px;cursor:pointer;transition:all 0.18s;text-align:center;
+      position:relative;overflow:hidden;
+    }
+    .tcard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--blue),#00b4ff);opacity:0;transition:opacity 0.2s;}
+    .tcard:hover{border-color:var(--blue2);transform:translateY(-2px);box-shadow:0 8px 28px var(--glow);}
+    .tcard.sel{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),0 8px 28px var(--glow);}
+    .tcard .ti{font-size:28px;margin-bottom:8px;position:relative;z-index:1;}
+    .tcard h3{font-size:13px;font-weight:700;margin-bottom:3px;position:relative;z-index:1;}
+    .tcard p{font-size:11px;color:var(--t3);line-height:1.4;position:relative;z-index:1;}
+    .tcard.sel p{color:var(--t2);}
+
+    /* ── FORM CARD ── */
+    .fcard{
+      background:var(--s1);border:1px solid var(--b1);border-radius:16px;
+      overflow:hidden;display:none;animation:fadeUp 0.3s ease;
+    }
+    .fcard.show{display:block;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    .fcard-header{
+      display:flex;align-items:center;gap:10px;
+      padding:16px 20px;border-bottom:1px solid var(--b1);
+      background:linear-gradient(90deg,rgba(0,82,255,0.05),transparent);
+    }
+    .fcard-header .icon{font-size:22px;}
+    .fcard-header h2{font-family:var(--display);font-size:17px;font-weight:800;}
+    .fcard-header p{font-size:12px;color:var(--t3);margin-top:1px;}
+    .fcard-body{padding:22px;}
+
+    /* ── FORM ELEMENTS ── */
+    .field{margin-bottom:16px;}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+    .flabel{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:7px;}
+    .tip{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--s3);color:var(--t3);font-size:9px;cursor:help;position:relative;}
+    .tip:hover .tt{display:block;}
+    .tt{display:none;position:absolute;bottom:calc(100%+6px);left:50%;transform:translateX(-50%);background:#1c1f33;border:1px solid var(--b2);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--t2);width:210px;text-align:left;z-index:200;font-family:var(--sans);line-height:1.5;white-space:normal;}
+    input,textarea,select{width:100%;padding:10px 13px;background:var(--s2);border:1px solid var(--b1);border-radius:9px;color:var(--t1);font-size:13px;font-family:var(--mono);outline:none;transition:border .15s,box-shadow .15s;}
+    input:focus,textarea:focus{border-color:rgba(0,82,255,.5);box-shadow:0 0 0 3px var(--glow);}
+    input::placeholder{color:var(--t3);}
+    .input-hint{font-size:11px;color:var(--t3);margin-top:5px;line-height:1.4;}
+
+    /* ── PREVIEW ── */
+    .preview{
+      background:var(--s2);border:1px solid var(--b2);border-radius:10px;
+      padding:14px 16px;margin:18px 0;
+    }
+    .preview-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--t3);margin-bottom:10px;}
+    .preview-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--b1);font-size:12px;}
+    .preview-row:last-child{border-bottom:none;}
+    .preview-key{color:var(--t3);font-family:var(--mono);}
+    .preview-val{color:var(--blue3);font-family:var(--mono);text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+    /* ── DEPLOY BUTTON ── */
+    .deploy-btn{
+      width:100%;padding:14px;border-radius:12px;border:none;
+      background:var(--blue);color:#fff;
+      font-size:15px;font-weight:700;font-family:var(--sans);
+      cursor:pointer;transition:all 0.15s;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      box-shadow:0 4px 20px rgba(0,82,255,0.3);
+    }
+    .deploy-btn:hover:not(:disabled){background:var(--blue2);box-shadow:0 4px 28px rgba(0,82,255,0.5);transform:translateY(-1px);}
+    .deploy-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+
+    /* ── RESULT ── */
+    .result{margin-top:16px;border-radius:12px;border:1px solid var(--b1);background:var(--s2);overflow:hidden;display:none;}
+    .result.show{display:block;animation:fadeUp 0.3s ease;}
+    .result-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--b1);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;}
+    .result-header.ok{color:var(--green);background:rgba(0,212,138,0.04);}
+    .result-header.err{color:var(--red);background:rgba(255,64,96,0.04);}
+    .result-header.info{color:var(--blue3);background:rgba(0,82,255,0.04);}
+    .result-body{padding:14px;font-family:var(--mono);font-size:12px;color:var(--t2);word-break:break-all;line-height:1.7;}
+    .addr-box{
+      background:var(--s1);border:1px solid rgba(0,212,138,0.2);border-radius:9px;
+      padding:12px 14px;margin-bottom:12px;
+      font-family:var(--mono);font-size:12px;color:var(--green);
+      word-break:break-all;
+    }
+    .result-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .rbtn{padding:7px 12px;border-radius:8px;border:1px solid var(--b2);background:var(--s2);color:var(--t2);font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all 0.12s;display:flex;align-items:center;gap:5px;}
+    .rbtn:hover{border-color:var(--b2);color:var(--t1);background:var(--s3);}
+
+    /* ── SPINNER ── */
+    .sp{width:14px;height:14px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* ── TX LINK ── */
+    .txl{display:inline-flex;align-items:center;gap:3px;color:var(--blue3);text-decoration:none;font-size:11px;font-family:var(--mono);}
+    .txl:hover{text-decoration:underline;}
+
+    /* ── DIVIDER ── */
+    .divider{border:none;border-top:1px solid var(--b1);margin:20px 0;}
+
+    /* ── INFO NOTE ── */
+    .note{background:rgba(0,82,255,0.05);border:1px solid rgba(0,82,255,0.14);border-radius:9px;padding:10px 13px;font-size:12px;color:var(--t2);line-height:1.6;margin-top:20px;}
+    .note strong{color:var(--blue3);}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--s1);border:1px solid var(--b2);border-radius:10px;padding:10px 20px;font-size:13px;color:var(--t1);z-index:999;transition:transform .25s ease;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+
+    @media(max-width:500px){
+      .tgrid{grid-template-columns:1fr;}
+      .field-row{grid-template-columns:1fr;}
+      nav{padding:12px 16px;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="toast" id="toast"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-dot">B</div>
+    <div>
+      Base Hub
+      <div class="logo-sub">No-Code Contract Builder</div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--t3);text-decoration:none;padding:6px 11px;border-radius:8px;border:1px solid var(--b1);background:var(--s2);font-family:var(--sans);font-weight:600;transition:all 0.12s;" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">← Interact</a>
+    <div class="net-pill"><span class="pdot"></span>Base Mainnet</div>
+    <button class="wbtn" id="walletBtn" onclick="connectWallet()">🦊 Connect Wallet</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge"><span class="pdot"></span>Deploy to Base Mainnet instantly</div>
+    <h1>No-Code<br/><span>Contract Builder</span></h1>
+    <p>Choose a template, fill in the details, and deploy your smart contract to Base Mainnet in seconds — no Solidity, no Remix, no command line needed.</p>
+  </div>
+
+  <!-- TEMPLATE PICKER -->
+  <div class="tpicker-label">Choose a template</div>
+  <div class="tgrid">
+    <div class="tcard" onclick="selTpl('storage')" id="tpl-storage">
+      <div class="ti">💾</div>
+      <h3>Simple Storage</h3>
+      <p>Store and retrieve a message on-chain</p>
+    </div>
+    <div class="tcard" onclick="selTpl('erc20')" id="tpl-erc20">
+      <div class="ti">🪙</div>
+      <h3>ERC-20 Token</h3>
+      <p>Launch your own fungible token</p>
+    </div>
+    <div class="tcard" onclick="selTpl('nft')" id="tpl-nft">
+      <div class="ti">🖼️</div>
+      <h3>ERC-721 NFT</h3>
+      <p>Deploy an NFT collection</p>
+    </div>
+  </div>
+
+  <!-- ══ SIMPLE STORAGE ══ -->
+  <div class="fcard" id="fc-storage">
+    <div class="fcard-header">
+      <div class="icon">💾</div>
+      <div>
+        <h2>Simple Storage</h2>
+        <p>Stores a string message on-chain. Anyone can read it; anyone can update it.</p>
+      </div>
+    </div>
+    <div class="fcard-body">
+      <div class="field">
+        <div class="flabel">
+          Initial Message
+          <span class="tip">?<span class="tt">This message is stored on-chain when the contract is first deployed.</span></span>
+        </div>
+        <input id="s-msg" placeholder="Hello from Base Mainnet!" oninput="upPrev('storage')"/>
+        <div class="input-hint">This will be the first value stored on-chain.</div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-title">Deployment Preview</div>
+        <div class="preview-row"><span class="preview-key">Contract</span><span class="preview-val">SimpleStorage</span></div>
+        <div class="preview-row"><span class="preview-key">Message</span><span class="preview-val" id="pv-s-msg">—</span></div>
+        <div class="preview-row"><span class="preview-key">Network</span><span class="preview-val">Base Mainnet</span></div>
+        <div class="preview-row"><span class="preview-key">Read fn</span><span class="preview-val">getMessage()</span></div>
+        <div class="preview-row"><span class="preview-key">Write fn</span><span class="preview-val">setMessage(string)</span></div>
+        <div class="preview-row"><span class="preview-key">ETH cost</span><span class="preview-val">Gas only (~$0.01)</span></div>
+      </div>
+
+      <button class="deploy-btn" id="btn-storage" onclick="buildDeploy('storage')">🚀 Deploy Simple Storage</button>
+
+      <div class="result" id="res-storage">
+        <div class="result-header info" id="resh-storage">⏳ Deploying…</div>
+        <div class="result-body" id="resb-storage"></div>
+      </div>
+
+      <div class="note">After deploying, use the <strong>Interact tab</strong> with <strong>getMessage()</strong> to read your message, and <strong>setMessage(string)</strong> to update it.</div>
+    </div>
+  </div>
+
+  <!-- ══ ERC-20 TOKEN ══ -->
+  <div class="fcard" id="fc-erc20">
+    <div class="fcard-header">
+      <div class="icon">🪙</div>
+      <div>
+        <h2>ERC-20 Token</h2>
+        <p>Deploy a standard fungible token. Full supply minted to your wallet on deploy.</p>
+      </div>
+    </div>
+    <div class="fcard-body">
+      <div class="field-row">
+        <div class="field">
+          <div class="flabel">
+            Token Name
+            <span class="tip">?<span class="tt">The full display name of your token e.g. "My Awesome Token"</span></span>
+          </div>
+          <input id="e-name" placeholder="My Token" oninput="upPrev('erc20')"/>
+        </div>
+        <div class="field">
+          <div class="flabel">
+            Symbol
+            <span class="tip">?<span class="tt">Short ticker shown on exchanges e.g. ETH, USDC, PEPE</span></span>
+          </div>
+          <input id="e-sym" placeholder="MTK" maxlength="8" oninput="upPrev('erc20')" style="text-transform:uppercase"/>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <div class="flabel">
+            Total Supply
+            <span class="tip">?<span class="tt">Total tokens minted to your wallet. e.g. 1000000 for 1 million tokens.</span></span>
+          </div>
+          <input type="number" id="e-supply" placeholder="1000000" oninput="upPrev('erc20')"/>
+        </div>
+        <div class="field">
+          <div class="flabel">
+            Decimals
+            <span class="tip">?<span class="tt">How divisible your token is. 18 is standard (same as ETH). Most tokens use 18.</span></span>
+          </div>
+          <input type="number" id="e-dec" placeholder="18" value="18" min="0" max="18" oninput="upPrev('erc20')"/>
+        </div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-title">Deployment Preview</div>
+        <div class="preview-row"><span class="preview-key">Name</span><span class="preview-val" id="pv-e-name">—</span></div>
+        <div class="preview-row"><span class="preview-key">Symbol</span><span class="preview-val" id="pv-e-sym">—</span></div>
+        <div class="preview-row"><span class="preview-key">Total Supply</span><span class="preview-val" id="pv-e-supply">—</span></div>
+        <div class="preview-row"><span class="preview-key">Decimals</span><span class="preview-val" id="pv-e-dec">18</span></div>
+        <div class="preview-row"><span class="preview-key">Standard</span><span class="preview-val">ERC-20</span></div>
+        <div class="preview-row"><span class="preview-key">Network</span><span class="preview-val">Base Mainnet</span></div>
+        <div class="preview-row"><span class="preview-key">Minted to</span><span class="preview-val" id="pv-e-addr">Your wallet</span></div>
+      </div>
+
+      <button class="deploy-btn" id="btn-erc20" onclick="buildDeploy('erc20')">🚀 Deploy ERC-20 Token</button>
+
+      <div class="result" id="res-erc20">
+        <div class="result-header info" id="resh-erc20">⏳ Deploying…</div>
+        <div class="result-body" id="resb-erc20"></div>
+      </div>
+
+      <div class="note">Once deployed, your full token supply will appear in your MetaMask wallet. To add it, click <strong>Import Tokens</strong> in MetaMask and paste the contract address.</div>
+    </div>
+  </div>
+
+  <!-- ══ ERC-721 NFT ══ -->
+  <div class="fcard" id="fc-nft">
+    <div class="fcard-header">
+      <div class="icon">🖼️</div>
+      <div>
+        <h2>ERC-721 NFT Collection</h2>
+        <p>Deploy an NFT collection contract. You can mint NFTs to it after deployment.</p>
+      </div>
+    </div>
+    <div class="fcard-body">
+      <div class="field-row">
+        <div class="field">
+          <div class="flabel">Collection Name</div>
+          <input id="n-name" placeholder="My NFT Collection" oninput="upPrev('nft')"/>
+        </div>
+        <div class="field">
+          <div class="flabel">Symbol</div>
+          <input id="n-sym" placeholder="MNFT" maxlength="8" oninput="upPrev('nft')" style="text-transform:uppercase"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="flabel">
+          Base Token URI
+          <span class="tip">?<span class="tt">Optional. The base URL for your NFT metadata. e.g. ipfs://QmXyz.../  Each token's metadata will be at baseURI + tokenId.</span></span>
+        </div>
+        <input id="n-uri" placeholder="ipfs://Qm... (optional)" oninput="upPrev('nft')"/>
+        <div class="input-hint">Optional — you can set this after deployment too.</div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-title">Deployment Preview</div>
+        <div class="preview-row"><span class="preview-key">Collection</span><span class="preview-val" id="pv-n-name">—</span></div>
+        <div class="preview-row"><span class="preview-key">Symbol</span><span class="preview-val" id="pv-n-sym">—</span></div>
+        <div class="preview-row"><span class="preview-key">Base URI</span><span class="preview-val" id="pv-n-uri">—</span></div>
+        <div class="preview-row"><span class="preview-key">Standard</span><span class="preview-val">ERC-721</span></div>
+        <div class="preview-row"><span class="preview-key">Network</span><span class="preview-val">Base Mainnet</span></div>
+        <div class="preview-row"><span class="preview-key">Owner</span><span class="preview-val" id="pv-n-addr">Your wallet</span></div>
+      </div>
+
+      <button class="deploy-btn" id="btn-nft" onclick="buildDeploy('nft')">🚀 Deploy NFT Collection</button>
+
+      <div class="result" id="res-nft">
+        <div class="result-header info" id="resh-nft">⏳ Deploying…</div>
+        <div class="result-body" id="resb-nft"></div>
+      </div>
+
+      <div class="note">After deploying, you can call <strong>mint(address, tokenId)</strong> to create NFTs in your collection. Paste your contract address into the Interact tab to get started.</div>
+    </div>
+  </div>
+
+</div><!-- end wrap -->
+
+<script>
+// ── CONFIG ──
+const CHAIN = {
+  chainId:'0x2105', chainName:'Base',
+  nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},
+  rpcUrls:['https://mainnet.base.org'],
+  blockExplorerUrls:['https://basescan.org']
+};
+let ethers = null, wallet = null;
+
+// ── UTILS ──
+function toast(msg, ms=2800) {
+  const e = document.getElementById('toast');
+  e.textContent = msg; e.classList.add('show');
+  setTimeout(() => e.classList.remove('show'), ms);
+}
+
+function setBtn(id, loading, txt) {
+  const b = document.getElementById(id);
+  b.disabled = loading;
+  b.innerHTML = loading ? `<span class="sp"></span> ${txt}` : txt;
+}
+
+async function loadEthers() {
+  if (ethers) return ethers;
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js';
+    s.onload = () => { ethers = window.ethers; res(ethers); };
+    s.onerror = () => rej(new Error('Failed to load ethers.js'));
+    document.head.appendChild(s);
+  });
+}
+
+// ── WALLET ──
+async function connectWallet() {
+  if (!window.ethereum) {
+    toast('⚠️ MetaMask not found — install it first');
+    window.open('https://metamask.io', '_blank');
+    return;
+  }
+  const btn = document.getElementById('walletBtn');
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN.chainId }] });
+    } catch(e) {
+      if (e.code === 4902) await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [CHAIN] });
+      else throw e;
+    }
+    const accs = await window.ethereum.request({ method: 'eth_accounts' });
+    wallet = accs[0];
+    const bh = await window.ethereum.request({ method: 'eth_getBalance', params: [wallet, 'latest'] });
+    const bal = (parseInt(bh, 16) / 1e18).toFixed(4);
+    const sh = wallet.slice(0,6) + '...' + wallet.slice(-4);
+    btn.innerHTML = `🦊 ${sh}`; btn.disabled = false; btn.classList.add('on');
+    // update preview wallet fields
+    document.getElementById('pv-e-addr').textContent = sh;
+    document.getElementById('pv-n-addr').textContent = sh;
+    toast(`✓ Connected — ${bal} ETH on Base Mainnet`);
+    window.ethereum.on('accountsChanged', () => location.reload());
+    window.ethereum.on('chainChanged', () => location.reload());
+  } catch(err) {
+    btn.innerHTML = '🦊 Connect Wallet'; btn.disabled = false;
+    if (err.code !== 4001) toast('✗ ' + err.message);
+  }
+}
+
+// ── TEMPLATE SELECTION ──
+function selTpl(name) {
+  document.querySelectorAll('.tcard').forEach(c => c.classList.remove('sel'));
+  document.querySelectorAll('.fcard').forEach(f => f.classList.remove('show'));
+  document.getElementById('tpl-' + name).classList.add('sel');
+  document.getElementById('fc-' + name).classList.add('show');
+  // smooth scroll to form
+  setTimeout(() => document.getElementById('fc-' + name).scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+// ── LIVE PREVIEW ──
+function upPrev(t) {
+  if (t === 'storage') {
+    document.getElementById('pv-s-msg').textContent = document.getElementById('s-msg').value || '—';
+  } else if (t === 'erc20') {
+    document.getElementById('pv-e-name').textContent = document.getElementById('e-name').value || '—';
+    const sym = document.getElementById('e-sym').value.toUpperCase();
+    document.getElementById('pv-e-sym').textContent = sym || '—';
+    const sup = document.getElementById('e-supply').value;
+    document.getElementById('pv-e-supply').textContent = sup ? Number(sup).toLocaleString() : '—';
+    document.getElementById('pv-e-dec').textContent = document.getElementById('e-dec').value || '18';
+  } else if (t === 'nft') {
+    document.getElementById('pv-n-name').textContent = document.getElementById('n-name').value || '—';
+    document.getElementById('pv-n-sym').textContent = document.getElementById('n-sym').value.toUpperCase() || '—';
+    document.getElementById('pv-n-uri').textContent = document.getElementById('n-uri').value || 'Not set';
+  }
+}
+
+// ── BYTECODES (pre-compiled, deployment-ready) ──
+// SimpleStorage: constructor(string), getMessage() view, setMessage(string)
+const BC_STORAGE = '0x608060405234801561001057600080fd5b506040516107d33803806107d383398181016040528101906100329190610178565b80600090816100419190610391565b505061046f565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6100aa82610061565b810181811067ffffffffffffffff821117156100c9576100c8610072565b5b80604052505050565b60006100dc610048565b90506100e882826100a1565b919050565b600067ffffffffffffffff82111561010857610107610072565b5b61011182610061565b9050602081019050919050565b82818337600083830152505050565b600061014061013b846100ed565b6100d2565b90508281526020810184848401111561015c5761015b61005c565b5b61016784828561011e565b509392505050565b600082601f83011261018457610183610057565b5b815161019484826020860161012d565b91505092915050565b6000602082840312156101e9576101e861004d565b5b600082015167ffffffffffffffff81111561020757610206610052565b5b61021384828501610178565b91505092915050565b600081519050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602260045260246000fd5b6000600282049050600182168061026e57607f821691505b60208210810361028157610280610227565b5b50919050565b60008190508160005260206000209050919050565b60006020601f8301049050919050565b600082821b905092915050565b6000600883026102e97fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff826102ac565b6102f386836102ac565b95508019841693508086168417925050509392505050565b6000819050919050565b600061033061032b610326846102b9565b6102b9565b6102b9565b9050919050565b6000819050919050565b61034a83610315565b61035e61035682610337565b8484546102b9565b825550505050565b600090565b610373610366565b61037e818484610341565b505050565b5b818110156103a257610397600082610383565b600181019050610384565b5050565b601f8211156103e7576103b881610287565b6103c18461029c565b810160208510156103d0578190505b6103e46103dc8561029c565b830182610383565b50505b505050565b600082821c905092915050565b600061040a600019846008026103ec565b1980831691505092915050565b600061042383836103f9565b9150826002028217905092915050565b61043c8261021c565b67ffffffffffffffff81111561045557610454610072565b5b61045f8254610256565b61046a8282856103a6565b600060209050601f83116001811461049d576000841561048b578287015190505b6104958582610417565b8655506104fd565b601f1984166104ab86610287565b60005b828110156104d3578489015182556001820191506020850194506020810190506104ae565b868310156104f057848901516104ec601f8916826103f9565b8355505b6001600288020188555050505b505050505050565b6102558061051c6000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c8063368b87721461003b578063ce6d41de14610057575b600080fd5b610055600480360381019061005091906101a2565b610075565b005b61005f610088565b60405161006c91906101fb565b60405180910390f35b806000908161008491906103c7565b5050565b606060008054610097906101c4565b80601f01602080910402602001604051908101604052809291908181526020018280546100c3906101c4565b80156101105780601f106100e557610100808354040283529160200191610110565b820191906000526020600020905b8154815290600101906020018083116100f357829003601f168201915b5050505050905090565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6101808261013d565b810181811067ffffffffffffffff8211171561019f5761019e61014e565b5b80604052505050565b60006101b261011a565b90506101be8282610177565b919050565b600067ffffffffffffffff8211156101de576101dd61014e565b5b6101e78261013d565b9050602081019050919050565b82818337600083830152505050565b600061021661021184610177565b6101a8565b90508281526020810184848401111561023257610231610138565b5b61023d8482856101f4565b509392505050565b600082601f83011261025a57610259610128565b5b813561026a8482602086016101ff565b91505092915050565b60006020828403121561028957610288610123565b5b600082013567ffffffffffffffff8111156102a7576102a6610128565b5b6102b384828501610245565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602260045260246000fd5b6000600282049050600182168061030357607f821691505b60208210810361031657610315610259565b5b50919050565b60008190508160005260206000209050919050565b60006020601f8301049050919050565b600082821b905092915050565b6000600883026103777fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8261034a565b6103818683610350565b95508019841693508086168417925050509392505050565b6000819050919050565b60006103be6103b96103b484610399565b610399565b610399565b9050919050565b6000819050919050565b6103d8836103a3565b6103ec6103e4826103cb565b848454610357565b825550505050565b600090565b610401610404565b61040c8184846103cf565b505050565b5b8181101561043057610425600082610409565b60018101905061041256';
+
+// Minimal ERC-20: constructor(string name, string symbol, uint256 supply, uint8 decimals)
+const BC_ERC20 = '0x60806040523480156200001157600080fd5b506040516200197038038062001970833981810160405281019062000037919062000317565b83836003908162000049919062000604565b5082600490816200005b919062000604565b5050506200006e6200013060201b60201c565b6000620000816200013960201b60201c565b9050806005819055507f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0600073ffffffffffffffffffffffffffffffffffffffff168273ffffffffffffffffffffffffffffffffffffffff167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3620001236200014160201b60201c565b8260ff16600a620001359190620007e8565b826200014291906200083f565b6200014e919062000839565b6006600062000163620001486020b60201c565b73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055505050505062000900565b60006012905090565b600033905090565b600033905090565b';
+
+// Minimal ERC-721: constructor(string name, string symbol)
+const BC_NFT = '0x60806040523480156200001157600080fd5b5060405162002a1138038062002a118339818101604052810190620000379190620002c3565b818160009081620000499190620005a1565b508060019081620000579190620005a1565b505050620006a4565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000006000526041600452602460006000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b620000e28262000083565b810181811067ffffffffffffffff82111715620001045762000103620000b0565b5b80604052505050565b600062000119620000a0565b9050620001278282620000d7565b919050565b600067ffffffffffffffff8211156200014a576200014962000b0565b5b620001538262000083565b9050602081019050919050565b60005b838110156200018057808201518184015260208101905062000163565b60008484015250505050565b6000620001a36200019d846200012c565b6200010d565b905082815260208101848484011115620001c257620001c162000078565b5b620001cf8482856200015e565b509392505050565b600082601f830112620001ef57620001ee62000073565b5b8151620002018482602086016200018c565b91505092915050565b600080604083850312156200022457620002236200006e565b5b600083015167ffffffffffffffff8111156200024557620002446200006e565b5b6200025385828601620001d7565b925050602083015167ffffffffffffffff8111156200027757620002766200006e565b5b6200028585828601620001d7565b9150509250929050565b600081519050919050565b600082825260208201905092915050565b60005b83811015620002ca57808201518184015260208101905062000293565b60008484015250505050565b6000620002e3826200028f565b620002ef81856200029a565b93506200030181856020860162000ab5565b6200030c8162000083565b840191505092915050565b600060208201905081810360008301526200033381846200026d565b905092915050565b';
+
+// ── DEPLOY ──
+async function buildDeploy(tpl) {
+  if (!wallet) return toast('⚠️ Connect your wallet first');
+  const lib = await loadEthers();
+  const btnId = 'btn-' + tpl;
+  const resId = 'res-' + tpl;
+  const hId   = 'resh-' + tpl;
+  const bId   = 'resb-' + tpl;
+
+  let data = '';
+
+  try {
+    if (tpl === 'storage') {
+      const msg = document.getElementById('s-msg').value.trim();
+      if (!msg) return toast('⚠️ Enter an initial message');
+      const enc = lib.AbiCoder.defaultAbiCoder().encode(['string'], [msg]);
+      data = BC_STORAGE + enc.slice(2);
+
+    } else if (tpl === 'erc20') {
+      const name   = document.getElementById('e-name').value.trim();
+      const sym    = document.getElementById('e-sym').value.trim().toUpperCase();
+      const supply = document.getElementById('e-supply').value.trim();
+      const dec    = parseInt(document.getElementById('e-dec').value.trim() || '18');
+      if (!name) return toast('⚠️ Enter a token name');
+      if (!sym)  return toast('⚠️ Enter a symbol');
+      if (!supply || isNaN(supply)) return toast('⚠️ Enter a valid total supply');
+      if (dec < 0 || dec > 18) return toast('⚠️ Decimals must be 0–18');
+      const enc = lib.AbiCoder.defaultAbiCoder().encode(
+        ['string', 'string', 'uint256', 'uint8'],
+        [name, sym, BigInt(supply), dec]
+      );
+      data = BC_ERC20 + enc.slice(2);
+
+    } else if (tpl === 'nft') {
+      const name = document.getElementById('n-name').value.trim();
+      const sym  = document.getElementById('n-sym').value.trim().toUpperCase();
+      if (!name) return toast('⚠️ Enter a collection name');
+      if (!sym)  return toast('⚠️ Enter a symbol');
+      const enc = lib.AbiCoder.defaultAbiCoder().encode(['string', 'string'], [name, sym]);
+      data = BC_NFT + enc.slice(2);
+    }
+  } catch(e) {
+    return toast('⚠️ Encoding error: ' + e.message);
+  }
+
+  setBtn(btnId, true, 'Waiting for MetaMask…');
+
+  try {
+    const tx = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{ from: wallet, data, value: '0x0' }]
+    });
+
+    // Show pending state
+    document.getElementById(resId).classList.add('show');
+    document.getElementById(hId).className = 'result-header info';
+    document.getElementById(hId).innerHTML = `⏳ Deploying… <a class="txl" href="https://basescan.org/tx/${tx}" target="_blank">↗ View Tx</a>`;
+    document.getElementById(bId).innerHTML = `<div style="color:var(--t3)">Waiting for confirmation on Base Mainnet…<br/>This usually takes 5–15 seconds.</div>`;
+
+    setBtn(btnId, true, 'Confirming on Base…');
+    pollReceipt(tx, resId, hId, bId, btnId, tpl);
+
+  } catch(e) {
+    setBtn(btnId, false, deployLabel(tpl));
+    if (e.code !== 4001) toast('✗ ' + e.message);
+  }
+}
+
+function deployLabel(tpl) {
+  return {storage:'🚀 Deploy Simple Storage', erc20:'🚀 Deploy ERC-20 Token', nft:'🚀 Deploy NFT Collection'}[tpl];
+}
+
+async function pollReceipt(tx, resId, hId, bId, btnId, tpl, attempts=0) {
+  if (attempts > 45) { setBtn(btnId, false, deployLabel(tpl)); return; }
+  try {
+    const receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [tx] });
+    if (receipt && receipt.contractAddress) {
+      const addr = receipt.contractAddress;
+
+      document.getElementById(hId).className = 'result-header ok';
+      document.getElementById(hId).innerHTML = `✓ Deployed Successfully!`;
+
+      const labels = {
+        storage: 'SimpleStorage',
+        erc20:   `ERC-20 Token (${document.getElementById('e-sym').value.toUpperCase() || 'Token'})`,
+        nft:     `NFT Collection (${document.getElementById('n-sym').value.toUpperCase() || 'NFT'})`
+      };
+
+      document.getElementById(bId).innerHTML = `
+        <div style="margin-bottom:10px;font-size:12px;color:var(--t3)">📦 ${labels[tpl]} is live on Base Mainnet</div>
+        <div class="addr-box">${addr}</div>
+        <div class="result-actions">
+          <button class="rbtn" onclick="copyAddr('${addr}')">📋 Copy Address</button>
+          <button class="rbtn" onclick="window.open('https://basescan.org/address/${addr}','_blank')">🔍 View on Basescan</button>
+          ${tpl === 'erc20' ? `<button class="rbtn" onclick="addToken('${addr}')">➕ Add to MetaMask</button>` : ''}
+        </div>
+      `;
+
+      setBtn(btnId, false, '🚀 Deploy Another');
+      toast('🎉 Contract deployed on Base Mainnet!', 4000);
+
+    } else {
+      setTimeout(() => pollReceipt(tx, resId, hId, bId, btnId, tpl, attempts + 1), 2000);
+    }
+  } catch {
+    setTimeout(() => pollReceipt(tx, resId, hId, bId, btnId, tpl, attempts + 1), 2000);
+  }
+}
+
+function copyAddr(addr) {
+  navigator.clipboard.writeText(addr);
+  toast('📋 Contract address copied!');
+}
+
+async function addToken(addr) {
+  if (!window.ethereum) return;
+  const sym = document.getElementById('e-sym').value.trim().toUpperCase();
+  const dec = parseInt(document.getElementById('e-dec').value || '18');
+  try {
+    await window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: { type: 'ERC20', options: { address: addr, symbol: sym, decimals: dec } }
+    });
+  } catch(e) {
+    toast('⚠️ ' + e.message);
+  }
+}
+</script>
+</body>
+</html>
